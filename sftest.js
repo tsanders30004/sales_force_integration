@@ -16,13 +16,12 @@ const fs      = require('fs');
 
 /* Sales Force */
 var sfConnect = new jsforce.Connection();
-var dbConnect = config.db.get;
 
 /* MySQL */
 var dbConnect       = config.db.get;  // what is this for?
 
 /* need to figure out how to retrieve this data from the config file */
-var mySqlConnection = mysql.createConnection({host: 'localhost', user: 'tsanders', password: 'rambuteau', database: 'tsanders'});
+var mySqlConnection = mysql.createConnection({host: 'localhost', user: 'tsanders', password: 'rambuteau', database: 'junk'});
 
 /*----====|| SET GLOBAL VARIABLES ||====----*/
 //to add a table
@@ -150,8 +149,8 @@ const fnSync=function(){
 
 	// we did the big join, send to mysql
 	// console.log('records: ',arrOutput.length);
-	console.log('result:',arrOutput[0]);        // this returns an object that represents the first row of the output.  
-    console.log(Object.values(arrOutput[0]));   // this converts an object (arrOutput[0] in this case) to an array.
+	// console.log('result:',arrOutput[0]);        // this returns an object that represents the first row of the output.  
+    // console.log(Object.values(arrOutput[0]));   // this converts an object (arrOutput[0] in this case) to an array.
 	fnSave(arrOutput,'sfBilling.csv');
 	fnInsert(arrOutput);
 }
@@ -262,19 +261,27 @@ const fnInsert=function(arrRecords){
          ) VALUES ?`;
     // console.log(sqlInsert);
     
-    mySqlConnection.connect(function(err){
+    testSqlStr = 'INSERT INTO t1(i) VALUES ?';
+    
+    mySqlConnection.connect(function(err) {
         if (err){
             console.log('Count not connect to MySQL.\n');
             console.log('MySQL ERROR ' + err.errno + ': ' + err.code);
         } else{
             console.log('Successfully connected to MySQL.\n');
-            mySqlConnection.query(/* mysqlStatement */ 'SELECT current_timestamp', function(err, results, fields){
-           console.log(results);
-           
-           /* use the following if necessary to show more information */
-           // console.log(fields);
-        });
-        mySqlConnection.end();
+            rows = [[4], [5], [6]];
+            mySqlConnection.query(testSqlStr, [rows], function(err, results, fields){
+            if(err){
+                console.log(err);
+            }else{
+                console.log(results);
+                console.log(fields);
+            }
+            
+            console.log(results);
+            // console.log(fields);
+            });
+            mySqlConnection.end();
         }
     });
     
