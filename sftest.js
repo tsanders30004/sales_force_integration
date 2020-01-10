@@ -146,13 +146,27 @@ const fnSync=function(){
 		WHERE account.DBA_Name__c like "%Metro Chicago%" ';
 	*/
 	var arrOutput = alasql(strQuery,[objData.Account,objData.Asset,objData.Bank_Account__c,objData.Identification_Number__c,objData.Contract,objData.User]);
-
+    var arrRows = [];
 	// we did the big join, send to mysql
 	// console.log('records: ',arrOutput.length);
 	// console.log('result:',arrOutput[0]);        // this returns an object that represents the first row of the output.  
     // console.log(Object.values(arrOutput[0]));   // this converts an object (arrOutput[0] in this case) to an array.
 	fnSave(arrOutput,'sfBilling.csv');
-	fnInsert(arrOutput);
+
+    // console.log('debug_15\n');
+    // console.log(arrOutput);
+    // console.log(arrOutput[0]);
+    // console.log(Object.values(arrOutput[0])); // eureka!  this is the object for the first element of arrOoutput converted to an array.
+    for (var i=0;i<=2;i++){
+        arrRows[i] = Object.values(arrOutput[i]);
+    }
+    console.log('debug_20:  number of rows = ' + arrRows.length);
+    console.log('debug_21:  arrRows[0]        = ' + arrRows[0]);
+    console.log('debug_21:  arrRows[1]        = ' + arrRows[1]);
+    console.log('debug_21:  arrRows[2]        = ' + arrRows[2]);
+    
+    fnInsert(arrRows);
+        
 }
 
 const fnQuery=function(strTable){
@@ -199,14 +213,24 @@ const fnSave=function(arrData,strFile){
 const fnInsert=function(arrRecords){
 	console.log('joined records count:',arrRecords.length);
 	//needs to be formatted in a way that can be inserted. mysql needs an array of values per row in the proper order, cant use objects
-	var arrInsert=[];
+/* 	var arrInsert=[];
 	for(var i=0;i<arrRecords.length;i++){
-		var objRow=[
-			arrRecords[i]
-		];
+		var objRow=[ arrRecords[i] ];
 	}
-
-    var sqlInsert = 
+    console.log('objRow = ' + objRow);
+ */    
+    // console.log(arrRecords);                                 // returns an array of objects
+    // console.log('arrRecords[0] = ' + arrRecords[0]);            // returns   0013i00000Cg8YJAAZ
+    // console.log(' Object.values(arrRecords[0] = ' + Object.values(arrRecords[0]));   // this returns 0013i00000Cg8YJAAZ,3 Delta Systems Inc.,,43,,3 Delta Systems Inc.,... but does not look like an array.
+   
+/*     var arrRows = [];
+    for(var i=0;i<=arrRecords.length;i++){
+        for(var j=0;j<=arrRecords.lenght[0];j++){
+            arrRows[i][j] = Object.values(arrRecords[i]);
+        }
+    } */
+    
+    var sqlInsertAccount = 
         `INSERT INTO stg_cardconex_account( 
          acct_id, 
          acct_name, 
@@ -215,7 +239,7 @@ const fnInsert=function(arrRecords){
          mid_1_type, 
          dba_name, 
          date_agreement_signed, 
-         clodure_date, 
+         closure_date, 
          sic, 
          owner_name, 
          owner_firstname, 
@@ -260,19 +284,22 @@ const fnInsert=function(arrRecords){
          pci_non_compliance_fee
          ) VALUES ?`;
     // console.log(sqlInsert);
-    
-    testSqlStr = 'INSERT INTO t1(i) VALUES ?';
-    
+        
     mySqlConnection.connect(function(err) {
         if (err){
-            console.log('Count not connect to MySQL.\n');
+            console.log('Could not connect to MySQL.\n');
             console.log('MySQL ERROR ' + err.errno + ': ' + err.code);
         } else{
             console.log('Successfully connected to MySQL.\n');
-            rows = [[4], [5], [6]];
-            mySqlConnection.query(testSqlStr, [rows], function(err, results, fields){
+            console.log('debug30\n');
+            console.log(arrRecords);
+            console.log('debug40\n');
+            console.log(Object.values(arrRecords));
+            console.log('debug_50\n');
+            console.log(Object.values(arrRecords)[0][0]);
+            mySqlConnection.query(sqlInsertAccount, [arrRecords], function(err, results, fields){
             if(err){
-                console.log(err);
+                console.log('MySQL ERROR ' + err.errno + ': ' + err.code + '\n' + err.sqlMessage);
             }else{
                 console.log(results);
                 console.log(fields);
