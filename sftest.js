@@ -302,11 +302,12 @@ const fnInsert=function(arrRecords){
                 console.log('MySQL ERROR ' + err.errno + ': ' + err.code + '\n' + err.sqlMessage);
             }else{
                 console.log(results);
-                console.log(fields);
+                console.log(results.message);
+                console.log('MySQL Status:  ' + results.message.substr(1, 128));
+                // console.log(fields);
             }
             
-            console.log(results);
-            // console.log(fields);
+            
             });
             mySqlConnection.end();
         }
