@@ -1,0 +1,7 @@
+var date_updated = '2014-11-20T12:18:21.000+0000';
+
+var sfTimestamp = date_updated.replace(/-/g, '').replace(/T/g, '').replace(/:/g, '').replace('.000+0000', '');
+
+console.log(date_updated);
+console.log(sfTimestamp);
+
