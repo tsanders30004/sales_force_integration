@@ -1,13 +1,10 @@
-// org id:  00D3i000000Fc0i
-// org id:  00D3i000000Fc0i
 // instance:  NA112
 // https://bluefin.my.salesforce.com
-
 // https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/langCon_apex_SOQL.htm
 // https://jsforce.github.io/document/#query
 
 
-/* Libraries */
+// Libraries
 const alasql  = require('alasql');  // http://alasql.org/
 const mysql   = require('mysql');
 const jsforce = require('jsforce');
@@ -15,21 +12,21 @@ const config  = require('./config');
 const Papa    = require('papaparse');
 const fs      = require('fs');
 
-/* Sales Force */
+// Sales Force
 var sfConnect = new jsforce.Connection();
 
-/* MySQL */
+// MySQL
 var dbConnect       = config.db.get;  // what is this for?
 
 /* need to figure out how to retrieve this data from the config file */
 var mySqlConnection = mysql.createConnection({host: 'localhost', user: 'tsanders', password: 'rambuteau', database: 'junk'});
 
-/*----====|| SET GLOBAL VARIABLES ||====----*/
-//to add a table
-// 1. add the new table query to select the columns
-// 2. add the table to the alaSQL join
+//  Global Variables
+//  To add a table:  
+//  *   Add the new table query to SELECT the columns
+//  *   Add the table to the alaSQL JOIN
 
-//these are the quieries to populate the in memory tables from salesforce, no logic here just getting data to work with
+//  These are the queries to populate the in memory-tables from Sales Force; includes no logic.
 var objQueries={
 	 "Account":'SELECT AccountNumber,Site,AccountSource,Account_Status__c,Active_ACH_IDs__c,Active_Acquiring_IDs__c,Active_Encryption_IDs__c,Active_Gateway_IDs__c,Active_Services__c,Additional_Documentation_Needed__c,BillingCity,BillingCountry,BillingCountryCode,BillingPostalCode,BillingState,BillingStateCode,BillingStreet,Billing_Contact_Email_Addresses__c,Business_Start_Date__c,CreatedById,CreatedDate,Customer_Number__c,DBA_Name__c,Description,Exemption_No__c,Id,Industry,IsPartner,Is_501c3__c,LastActivityDate,LastModifiedById,LastModifiedDate,Lead_Type__c,Legacy_ID__c,Legacy_Source__c,Max_Contract_End_Date__c,Months_In_Business__c,Name,NumberOfEmployees,Open_Opportunities__c,Open_Opportunity_Amount__c,OrganizationID__c,OwnerId,ParentId,Partnership_Type__c,Partner_Service_Instructions__c,Phone,PhotoUrl,RecordTypeId,Revenue_Segment__c,ShippingAddress,ShippingCity,ShippingCountry,ShippingCountryCode,ShippingGeocodeAccuracy,ShippingLatitude,ShippingLongitude,ShippingPostalCode,ShippingState,ShippingStateCode,ShippingStreet,Sic,SicDesc,Type,Unique_Count__c,Website FROM Account'
 	,"Bank_Account__c":'SELECT Bank_Name__c,ABA__c,AccountId__c,Account_Type__c,ACH_Debit_Account_Name__c,ACH_Descriptor__c,Bank_Account_Number__c,Bank_Account_Type__c,Bank_City__c,Bank_Contact_Name__c,Bank_Phone__c,Bank_Postal_Code__c,Bank_State__c,Bank_Street_Address__c,Business_Person_Named_on_teh_account__c,CreatedById,CreatedDate,Id,LastModifiedDate,Name FROM Bank_Account__c'
@@ -40,7 +37,6 @@ var objQueries={
 	,"User":'SELECT Id,Name,FirstName,LastName FROM User'
 };
 var arrTables=Object.keys(objQueries);
-
 var objFeeMap={
 	 "ACH Credit Fee":'ach_credit_fee'
 	,"BF ACH Discount Rate":'bfach_discount_rate'
@@ -73,22 +69,24 @@ var objFeeMap={
 	,"PCI Non-Compliance Fee":'pci_non_compliance_fee'
 };
 
-//create the list of fields from this for select statement. to avoid copy pasta
+//  Create the list of fields from this for the SELECT statement.
 var arrFees = Object.keys(objFeeMap);
 var strSelectFees='';
-for(var i=0;i<arrFees.length;i++){ strSelectFees = strSelectFees + ',asset.'+objFeeMap[arrFees[i]]; }
+for(var i=0;i<arrFees.length;i++){
+        strSelectFees = strSelectFees + ',asset.' + objFeeMap[arrFees[i]];
+    }
 
-//this will store the results for example: objData.Account
-//all of the tables are dynamically created from the queries
+//  this will store the results for example: objData.Account
+//  all of the tables are dynamically created from the queries
 var objData={};
 
-/*----====|| FUNCTIONS ||====----*/
+// Functions
 const fnSync=function(){
 	//this will run alasql and proceed after all the salesforce stuff comes back
 	var go=true;
 	for(var i=0;i<arrTables.length;i++){
 		if(!objData[arrTables[i]] || objData[arrTables[i]].length === 0){ 
-			console.log('still waiting on records for: ',arrTables[i]);
+			console.log('Waiting on records for ' + arrTables[i] + '...' );
 			return false;
 		}
 	}
@@ -104,6 +102,7 @@ const fnSync=function(){
 		 ,
 	    [objData.Account,objData.Asset,objData.Bank_Account__c,objData.Identification_Number__c,objData.Contract,objData.User]);
 */
+
 	var strQuery = 'SELECT \
 	 		account.Id as acct_id, \
 	 		account.Name as acct_name, \
@@ -138,19 +137,28 @@ const fnSync=function(){
 
 	var arrOutput = alasql(strQuery,[objData.Account,objData.Asset,objData.Bank_Account__c,objData.Identification_Number__c,objData.Contract,objData.User]);
     var arrRows = [];
-	// we did the big join, send to mysql
-
-	// console.log('result:',arrOutput[0]);        // this returns an object that represents the first row of the output.  
-    // console.log(Object.values(arrOutput[0]));   // this converts an object (arrOutput[0] in this case) to an array.
+	// The in-memory JOIN is complete.
+    
+    // Write the output file.
 	fnSave(arrOutput,'sfBilling.csv');
 
     // console.log(Object.values(arrOutput[0])); // eureka!  this is the object for the first element of arrOoutput converted to an array.
-    for (var i=0;i<=2;i++){
+    
+    console.log('WARNING:  for the moment, the number of rows to be written to the database is limited to three for testing...\n');
+    for (var i=0; i<=2; i++){
         arrRows[i] = Object.values(arrOutput[i]);
     }
  
     fnInsert(arrRows);
-        
+ 
+    // Create a .CSV file that has the contents of the asset table.
+    console.log('Asset table...\n');
+    strQueryAsset = 'SELECT * FROM ? AS account';
+    var arrOutputAsset = alasql(strQueryAsset,[objData.Account]);
+    // console.log(arrOutputAsset);
+    fnSave(arrOutputAsset,'sfAsset.csv');
+    
+    
 }
 
 const fnQuery=function(strTable){
@@ -194,7 +202,14 @@ const fnSave=function(arrData,strFile){
 };
 
 const fnInsert=function(arrRecords){
-	console.log('joined records count:',arrRecords.length);
+/*
+    PURPOSE:  INSERT rows into the database.
+    
+    arrRecords is a two-dimensional array with the data to be added to the database;
+    i.e., arrRecords[i][j] represents the jth column of the ith row.
+*/
+
+	console.log('Number for rows to add to the database:  ' + arrRecords.length);
     
     var sqlInsertAccount = 
         `INSERT INTO stg_cardconex_account( 
@@ -275,13 +290,17 @@ const fnInsert=function(arrRecords){
 
 }
 
-/*----====|| LOGIN TO SALESFORCE ||====----*/
+// Log in to Sales Force
 sfConnect.login(config.sf.user, config.sf.password, function(objLoginError, objLoginResponse) {
-  if (objLoginError) { return console.error(objLoginError); }
+  if (objLoginError) { 
+    return console.error(objLoginError); 
+  }
   // YOU CANNOT COMPARE FIELDS DIRECTLY IN THIS LANGUAGE, MUST USE SUB SELECTS :(
   // SO WE WILL JUST GRAB EACH TABLE WORTH OF INFO AND JOIN WITH ALASQL AND QUERY 
   
-  /*----====|| IMPORT TABLES TO MEMORY ||====----*/
-  for(var i=0;i<arrTables.length;i++){ fnQuery(arrTables[i]); }
+// import tables to memory.
+  for(var i=0; i<arrTables.length; i++){ 
+    fnQuery(arrTables[i]); 
+  }
   
 });
