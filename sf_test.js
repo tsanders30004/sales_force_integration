@@ -38,35 +38,35 @@ var objQueries={
 };
 var arrTables=Object.keys(objQueries);
 var objFeeMap={
-	 "ACH Credit Fee":'ach_credit_fee'
-	,"BF ACH Discount Rate":'bfach_discount_rate'
-	,"ACH Monthly Fee":'ach_monthly_fee'
-	,"ACH NOC Fee":'ach_noc_fee'
-	,"GW Per Transaction Fee":'ach_per_gw_trans_fee'
-	,"ACH Return/Error Fee":'ach_return_error_fee'
-	,"ACH Transaction Fee":'ach_transaction_fee'
-	,"BF GW Discount Rate":'bluefin_gateway_discount_rate'
-	,"File Transfer Monthly Fee":'file_transfer_monthly_fee'
-	,"GW Monthly Fee":'gateway_monthly_fee'
-	,"Group/Tag Fee":'group_tag_fee'
-	,"GW Auth Decline Fee":'gw_per_auth_decline_fee'
-	,"GW Per Transaction Fee":'per_transaction_fee'
-	,"GW Credit Fee":'gw_per_credit_fee'
-	,"GW Refund Fee":'gw_per_refund_fee'
-	,"P2PE Transaction Fee":'gw_per_sale_fee'
-	,"GW Token Fee":'gw_per_token_fee'
-	,"GW Reissued Fee":'gw_reissued_fee'
-	,"Misc Monthly Fee(s)":'misc_monthly_fees'
-	,"P2PE Device Activated Fee":'p2pe_device_activated'
-	,"P2PE Device Activating Fee":'p2pe_device_activating_fee'
-	,"P2PE Device Stored Fee":'p2pe_device_stored_fee'
-	,"P2PE Token Fee":'p2pe_encryption_fee'
-	,"P2PE Token Flat Monthly Fee":'p2pe_monthly_flat_fee'
-	,"One-Time Key Injection Fee":'one_time_key_injection_fees'
-	,"P2PE Encryption Fee":'p2pe_tokenization_fee'
-	,"PCI Scan Monthly Fee":'pci_scans_monthly_fee'
-	,"PCI  Management Fee":'pci_compliance_fee'
-	,"PCI Non-Compliance Fee":'pci_non_compliance_fee'
+	 "ACH Credit Fee":                  'ach_credit_fee'
+	,"BF ACH Discount Rate":            'bfach_discount_rate'
+	,"ACH Monthly Fee":                 'ach_monthly_fee'
+	,"ACH NOC Fee":                     'ach_noc_fee'
+	,"GW Per Transaction Fee":          'ach_per_gw_trans_fee'
+	,"ACH Return/Error Fee":            'ach_return_error_fee'
+	,"ACH Transaction Fee":             'ach_transaction_fee'
+	,"BF GW Discount Rate":             'bluefin_gateway_discount_rate'
+	,"File Transfer Monthly Fee":       'file_transfer_monthly_fee'
+	,"GW Monthly Fee":                  'gateway_monthly_fee'
+	,"Group/Tag Fee":                   'group_tag_fee'
+	,"GW Auth Decline Fee":             'gw_per_auth_decline_fee'
+	,"GW Per Transaction Fee":          'per_transaction_fee'
+	,"GW Credit Fee":                   'gw_per_credit_fee'
+	,"GW Refund Fee":                   'gw_per_refund_fee'
+	,"P2PE Transaction Fee":            'gw_per_sale_fee'
+	,"GW Token Fee":                    'gw_per_token_fee'
+	,"GW Reissued Fee":                 'gw_reissued_fee'
+	,"Misc Monthly Fee(s)":             'misc_monthly_fees'
+	,"P2PE Device Activated Fee":       'p2pe_device_activated'
+	,"P2PE Device Activating Fee":      'p2pe_device_activating_fee'
+	,"P2PE Device Stored Fee":          'p2pe_device_stored_fee'
+	,"P2PE Token Fee":                  'p2pe_encryption_fee'
+	,"P2PE Token Flat Monthly Fee":     'p2pe_monthly_flat_fee'
+	,"One-Time Key Injection Fee":      'one_time_key_injection_fees'
+	,"P2PE Encryption Fee":             'p2pe_tokenization_fee'
+	,"PCI Scan Monthly Fee":            'pci_scans_monthly_fee'
+	,"PCI  Management Fee":             'pci_compliance_fee'
+	,"PCI Non-Compliance Fee":          'pci_non_compliance_fee'
 };
 
 //  Create the list of fields from this for the SELECT statement.
@@ -81,8 +81,17 @@ for(var i=0;i<arrFees.length;i++){
 var objData={};
 
 // Functions
+
+const currentTimestamp = function(){
+    // returns the current timestamp un YYYYMMDD_HHMMSS format.
+    return new Date().toISOString().replace(/T/, '_').replace(/-/g, '').replace(/:/g, '').substring(0, 14);
+}
+
 const fnSync=function(){
-	//this will run alasql and proceed after all the salesforce stuff comes back
+	/*
+        PURPOSE:  perform the in-memory table JOIN, write the output file, and update the database.
+    */
+    
 	var go=true;
 	for(var i=0;i<arrTables.length;i++){
 		if(!objData[arrTables[i]] || objData[arrTables[i]].length === 0){ 
@@ -90,18 +99,6 @@ const fnSync=function(){
 			return false;
 		}
 	}
-/*
-	//simple join everything query
-	var arrOutput = alasql('SELECT account.*,asset.*,bank.*,idnum.*,contract.* FROM ? AS account \
-		JOIN ? as asset ON account.Id = asset.AccountId \
-		JOIN ? as bank ON account.Id = bank.AccountId__c \
-		JOIN ? as idnum ON account.Id = idnum.AccountId__c \
-		JOIN ? as contract ON account.Id = contract.AccountId \
-		JOIN ? as user ON account.OwnerId = user.Id \
-		'
-		 ,
-	    [objData.Account,objData.Asset,objData.Bank_Account__c,objData.Identification_Number__c,objData.Contract,objData.User]);
-*/
 
 	var strQuery = 'SELECT \
 	 		account.Id as acct_id, \
@@ -145,20 +142,42 @@ const fnSync=function(){
     // console.log(Object.values(arrOutput[0])); // eureka!  this is the object for the first element of arrOoutput converted to an array.
     
     console.log('WARNING:  for the moment, the number of rows to be written to the database is limited to three for testing...\n');
-    for (var i=0; i<=2; i++){
+    for (var i=0; i<arrOutput.length; i++){
         arrRows[i] = Object.values(arrOutput[i]);
     }
  
     fnInsert(arrRows);
  
-    // Create a .CSV file that has the contents of the asset table.
-    console.log('Asset table...\n');
-    strQueryAsset = 'SELECT * FROM ? AS account';
-    var arrOutputAsset = alasql(strQueryAsset,[objData.Account]);
-    // console.log(arrOutputAsset);
+    // Create a .CSV file that has the contents of the other tables - for debugging only.
+    console.log('Exporting all tables for debugging...\n');
+    
+    strQueryAccount                              = 'SELECT * FROM ? AS account';
+    var arrOutputAccount                         = alasql(strQueryAccount,[objData.Account]);
+    fnSave(arrOutputAccount,'sfAccount.csv');
+    
+    strQueryAsset                                = 'SELECT AccountId,AssetLevel,ContractId__c,CreatedById,CreatedDate,Description,Fee_Amount_Text__c,Fee_Amount__c,Fee_Group__c,Fee_Name__c,Id,Identification_NumberId__c,ID_Number_Text__c,InstallDate,LastModifiedById,LastModifiedDate,Name,OwnerId,ParentId,Price,Product2Id,ProductCode,PurchaseDate,Quantity,Quote_Line_ItemId__c,SerialNumber,Status,UsageEndDate FROM ? AS asset';
+    var arrOutputAsset                           = alasql(strQueryAsset,[objData.Asset]);
     fnSave(arrOutputAsset,'sfAsset.csv');
     
+    strQueryBankAccount                          = 'SELECT * FROM ? AS bankAccount';
+    var arrOutputBankAccount                     = alasql(strQueryBankAccount,[objData.Bank_Account__c]);
+    fnSave(arrOutputBankAccount,'sfBankAccount.csv');    
+
+    strQueryContract                             = 'SELECT * FROM ? AS contract';
+    var arrOutputContract                        = alasql(strQueryContract,[objData.Contract]);
+    fnSave(arrOutputContract,'sfContract.csv'); 
     
+    strQueryIdentificationNumber                 = 'SELECT * FROM ? AS identificationNumber';
+    var arrOutputIdentificationNumber            = alasql(strQueryIdentificationNumber,[objData.Identification_Number__c]);
+    fnSave(arrOutputIdentificationNumber,'sfBankIdentificationNumber.csv');  
+ 
+    strQueryRecordType                           = 'SELECT * FROM ? AS recordType';
+    var arrOutputRecordType                      = alasql(strQueryRecordType,[objData.RecordType]);
+    fnSave(arrOutputRecordType,'sfRecordType.csv'); 
+    
+    strQueryUser                                 = 'SELECT * FROM ? AS user';
+    var arrOutputUser                            = alasql(strQueryUser,[objData.User]);
+    fnSave(arrOutputUser,'sfUser.csv'); 
 }
 
 const fnQuery=function(strTable){
@@ -198,8 +217,22 @@ const fnSave=function(arrData,strFile){
 	console.log('saving file: ',strFile);
 	//https://www.papaparse.com/docs#json-to-csv
 	var strData = Papa.unparse(arrData);
-	fs.writeFile(strFile, strData,(err) => { if (err) throw err; });
+
+    /* 
+        Redefine the output file to have an embedded timestamp.
+        Assumes the input file has a three-character extension.
+        Example:  sfBilling.csv becomes sfBilling_YYYYMMDD_HHMMSS.csv
+    */
+    var strOutFile = strFile.substring(0, strFile.indexOf('.'))
+         .concat('_')
+         .concat(currentTimestamp())
+         .concat('.')
+         .concat(strFile.substring(strFile.length - 3));
+         
+	fs.writeFile(strOutFile, strData,(err) => { if (err) throw err; });         
 };
+
+
 
 const fnInsert=function(arrRecords){
 /*
@@ -210,7 +243,6 @@ const fnInsert=function(arrRecords){
 */
 
 	console.log('Number for rows to add to the database:  ' + arrRecords.length);
-    
     var sqlInsertAccount = 
         `INSERT INTO stg_cardconex_account( 
          acct_id, 
