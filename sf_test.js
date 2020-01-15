@@ -19,7 +19,7 @@ var sfConnect = new jsforce.Connection();
 var dbConnect       = config.db.get;  // what is this for?
 
 /* need to figure out how to retrieve this data from the config file */
-var mySqlConnection = mysql.createConnection({host: 'localhost', user: 'tsanders', password: 'rambuteau', database: 'junk'});
+var mySqlConnection = mysql.createConnection({host: 'localhost', user: 'tsanders', password: 'rambuteau', database: 'sales_force'});
 
 //  Global Variables
 //  To add a table:  
@@ -36,7 +36,9 @@ var objQueries={
 	,"RecordType":'SELECT BusinessProcessId,CreatedById,CreatedDate,Description,DeveloperName,Id,IsActive,LastModifiedById,LastModifiedDate,Name,NamespacePrefix,SobjectType FROM RecordType'
 	,"User":'SELECT Id,Name,FirstName,LastName FROM User'
 };
+
 var arrTables=Object.keys(objQueries);
+
 var objFeeMap={
 	 "ACH Credit Fee":                  'ach_credit_fee'
 	,"BF ACH Discount Rate":            'bfach_discount_rate'
@@ -101,38 +103,40 @@ const fnSync=function(){
 	}
 
 	var strQuery = 'SELECT \
-	 		account.Id as acct_id, \
-	 		account.Name as acct_name, \
-	 		account.AccountNumber as accountnumber, \
-	 		idnum.Name as mid_1, \
-	 		idnum.Type__c as mid_1_type, \
-	 		account.DBA_Name__c as dba_name, \
-	 		contract.StartDate as date_agreement_signed, \
-	 		idnum.Close_Date__c as closure_date, \
-	 		account.Sic as sic, \
-	 		user.Name as owner_name, \
-	 		user.FirstName as owner_firstname, \
-	 		user.LastName as owner_lastname, \
-	 		contract.StartDate as bluefin_contract_start_date, \
-	 		account.Industry as industry, \
-	 		account.Revenue_Segment as segment, \
-	 		account.ParentId as parent_acct_id, \
-	 		contract.Hold_Billing__c as hold_billing, \
-	 		contract.Billing_Hold_Release_Date__c as stop_billing, \
-	 		contract.Billing_Preference__c as billing_situation, \
-	 		contract.Billing_Frequency__c as billing_frequency, \
-	 		account.LastModifiedDate as date_modified, \
-	 		account.CreatedDate as date_updated ' 
+	 		account.Id                              AS acct_id, \
+            account.Legacy_ID__c                    AS legacy_id, \
+	 		account.Name                            AS acct_name, \
+	 		account.AccountNumber                   AS accountnumber, \
+	 		idnum.Name                              AS mid_1, \
+	 		idnum.Type__c                           AS mid_1_type, \
+	 		account.DBA_Name__c                     AS dba_name, \
+	 		contract.StartDate                      AS date_agreement_signed, \
+	 		idnum.Close_Date__c                     AS closure_date, \
+	 		account.Sic                             AS sic, \
+	 		user.Name                               AS owner_name, \
+	 		user.FirstName                          AS owner_firstname, \
+	 		user.LastName                           AS owner_lastname, \
+	 		contract.StartDate                      AS bluefin_contract_start_date, \
+	 		account.Industry                        AS industry, \
+	 		account.Revenue_Segment                 AS segment, \
+	 		account.ParentId                        AS parent_acct_id, \
+	 		contract.Hold_Billing__c                AS hold_billing, \
+	 		contract.Billing_Hold_Release_Date__c   AS stop_billing, \
+	 		contract.Billing_Preference__c          AS billing_situation, \
+	 		contract.Billing_Frequency__c           AS billing_frequency, \
+	 		account.LastModifiedDate                AS date_modified, \
+	 		account.CreatedDate                     AS date_updated ' 
 	 		+ strSelectFees + 
-	 	' FROM ? AS account \
-		JOIN ? as asset ON account.Id = asset.AccountId \
-		JOIN ? as bank ON account.Id = bank.AccountId__c \
-		JOIN ? as idnum ON account.Id = idnum.AccountId__c \
-		JOIN ? as contract ON account.Id = contract.AccountId \
-		JOIN ? as user ON account.OwnerId = user.Id \
+      ' FROM ?                                      AS account \
+		JOIN ?                                      AS asset ON account.Id = asset.AccountId \
+		JOIN ?                                      AS bank ON account.Id = bank.AccountId__c \
+		JOIN ?                                      AS idnum ON account.Id = idnum.AccountId__c \
+		JOIN ?                                      AS contract ON account.Id = contract.AccountId \
+		JOIN ?                                      AS user ON account.OwnerId = user.Id \
 	';
-
+                                                          
 	var arrOutput = alasql(strQuery,[objData.Account,objData.Asset,objData.Bank_Account__c,objData.Identification_Number__c,objData.Contract,objData.User]);
+    
     var arrRows = [];
 	// The in-memory JOIN is complete.
     
@@ -141,14 +145,17 @@ const fnSync=function(){
 
     // console.log(Object.values(arrOutput[0])); // eureka!  this is the object for the first element of arrOoutput converted to an array.
     
-    console.log('WARNING:  for the moment, the number of rows to be written to the database is limited to three for testing...\n');
     for (var i=0; i<arrOutput.length; i++){
         arrRows[i] = Object.values(arrOutput[i]);
     }
  
+    // console.log(arrRows[0]);
+    
     fnInsert(arrRows);
  
     // Create a .CSV file that has the contents of the other tables - for debugging only.
+
+    /*
     console.log('Exporting all tables for debugging...\n');
     
     strQueryAccount                              = 'SELECT * FROM ? AS account';
@@ -157,6 +164,7 @@ const fnSync=function(){
     
     strQueryAsset                                = 'SELECT AccountId,AssetLevel,ContractId__c,CreatedById,CreatedDate,Description,Fee_Amount_Text__c,Fee_Amount__c,Fee_Group__c,Fee_Name__c,Id,Identification_NumberId__c,ID_Number_Text__c,InstallDate,LastModifiedById,LastModifiedDate,Name,OwnerId,ParentId,Price,Product2Id,ProductCode,PurchaseDate,Quantity,Quote_Line_ItemId__c,SerialNumber,Status,UsageEndDate FROM ? AS asset';
     var arrOutputAsset                           = alasql(strQueryAsset,[objData.Asset]);
+    // console.log(arrOutputAsset);
     fnSave(arrOutputAsset,'sfAsset.csv');
     
     strQueryBankAccount                          = 'SELECT * FROM ? AS bankAccount';
@@ -178,6 +186,13 @@ const fnSync=function(){
     strQueryUser                                 = 'SELECT * FROM ? AS user';
     var arrOutputUser                            = alasql(strQueryUser,[objData.User]);
     fnSave(arrOutputUser,'sfUser.csv'); 
+    */
+
+    strQueryAsset                                = 'SELECT * FROM ? AS asset';
+    var arrOutputAsset                           = alasql(strQueryAsset,[objData.Asset]);
+    // console.log(arrOutputAsset);
+    fnSave(arrOutputAsset,'sfAsset.csv');
+
 }
 
 const fnQuery=function(strTable){
@@ -196,7 +211,7 @@ const fnConvert=function(strTable,arrRecords){
 	var arrResults=[];
 	//change the asset - fee records
 	if(strTable === 'Asset'){
-		console.log('Processing '+arrRecords.length+' Asset Records');
+		console.log('processing '+arrRecords.length+' asset records');
 		for(var i=0;i<arrRecords.length;i++){
 			var objRecord=arrRecords[i];
 			for( var ii=0;ii<arrFees.length;ii++){
@@ -244,8 +259,9 @@ const fnInsert=function(arrRecords){
 
 	console.log('Number for rows to add to the database:  ' + arrRecords.length);
     var sqlInsertAccount = 
-        `INSERT INTO stg_cardconex_account( 
+        `INSERT INTO test_cardconex_account( 
          acct_id, 
+         legacy_id,
          acct_name, 
          accountnumber, 
          mid_1, 
@@ -308,8 +324,6 @@ const fnInsert=function(arrRecords){
             if(err){
                 console.log('MySQL ERROR ' + err.errno + ': ' + err.code + '\n' + err.sqlMessage);
             }else{
-                console.log(results);
-                console.log(results.message);
                 console.log('MySQL Status:  ' + results.message.substr(1, 128));
             }
             
