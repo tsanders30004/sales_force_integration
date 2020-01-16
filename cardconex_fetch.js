@@ -30,18 +30,6 @@ var objQueries={
 };
 
 var arrTables=['Account'];  // Object.keys(objQueries);
-/*
-arrTables = 
-[ 'Account',
-  'Bank_Account__c',
-  'Identification_Number__c',
-  'Contract',
-  'Asset',
-  'RecordType',
-  'User',
-  'Sales_Contract__c' ]
-*/
-
 
 var objData={};
 
@@ -59,23 +47,8 @@ const fnSync=function(){
 			return false;
 		}
 	}
-
-/*    var strQuery = 'SELECT 
-            account.Id                              AS acct_id, 
-            account.Legacy_ID__c                    AS legacy_id, 
-            account.Name                            AS acct_name, 
-            account.AccountNumber                   AS accountnumber, 
-            account.DBA_Name__c                     AS dba_name, 
-            account.Sic                             AS sic, 
-            account.Industry                        AS industry, 
-            account.Revenue_Segment                 AS segment, 
-            account.ParentId                        AS parent_acct_id, 
-            account.LastModifiedDate                AS date_modified, 
-            account.CreatedDate                     AS date_updated 
-            FROM ?                                      AS account
-    ';
-    */                   
-    var strQuery = 'SELECT account.Id AS acct_id FROM ? AS account';
+                   
+    var strQuery = 'SELECT AccountNumber,Site,AccountSource,Account_Status__c,Active_ACH_IDs__c,Active_Acquiring_IDs__c,Active_Encryption_IDs__c,Active_Gateway_IDs__c,Active_Services__c,Additional_Documentation_Needed__c,BillingCity,BillingCountry,BillingCountryCode,BillingPostalCode,BillingState,BillingStateCode,BillingStreet,Billing_Contact_Email_Addresses__c,Business_Start_Date__c,CreatedById,CreatedDate,Customer_Number__c,DBA_Name__c,Description,Exemption_No__c,Id,Industry,IsPartner,Is_501c3__c,LastActivityDate,LastModifiedById,LastModifiedDate,Lead_Type__c,Legacy_ID__c,Legacy_Source__c,Max_Contract_End_Date__c,Months_In_Business__c,Name,NumberOfEmployees,Open_Opportunities__c,Open_Opportunity_Amount__c,OrganizationID__c,OwnerId,ParentId,Partnership_Type__c,Partner_Service_Instructions__c,Phone,PhotoUrl,RecordTypeId,Revenue_Segment__c,ShippingAddress,ShippingCity,ShippingCountry,ShippingCountryCode,ShippingGeocodeAccuracy,ShippingLatitude,ShippingLongitude,ShippingPostalCode,ShippingState,ShippingStateCode,ShippingStreet,Sic,SicDesc,Type,Unique_Count__c,Website FROM ? AS account';
 
 	var arrOutput = alasql(strQuery,[objData.Account]);
     
@@ -83,8 +56,6 @@ const fnSync=function(){
     
     // Write the output file.
 	fnSave(arrOutput,'sfBilling.csv');
-
-    // console.log(Object.values(arrOutput[0])); // eureka!  this is the object for the first element of arrOoutput converted to an array.
     
     for (var i=0; i<arrOutput.length; i++){
         arrRows[i] = Object.values(arrOutput[i]);
@@ -92,7 +63,7 @@ const fnSync=function(){
  
     // console.log(arrRows[0]);
     
-    fnInsert(arrRows);
+    fnInsert(arrRows, 'account');
  
     // Create a .CSV file that has the contents of the other tables - for debugging only.
 
@@ -190,7 +161,7 @@ const fnSave=function(arrData,strFile){
 
 
 
-const fnInsert=function(arrRecords){
+const fnInsert=function(arrRecords, tableName){
 /*
     PURPOSE:  INSERT rows into the database.
     
@@ -199,11 +170,15 @@ const fnInsert=function(arrRecords){
 */
 
 	console.log('Number for rows to add to the database:  ' + arrRecords.length);
+
+    // console.log(arrRecords);
+
     var sqlInsertAccount = 
-        `INSERT INTO test_cardconex_account( 
-         acct_id
+        `INSERT INTO account(AccountNumber,Site,AccountSource,Account_Status__c,Active_ACH_IDs__c,Active_Acquiring_IDs__c,Active_Encryption_IDs__c,Active_Gateway_IDs__c,Active_Services__c,Additional_Documentation_Needed__c,BillingCity,BillingCountry,BillingCountryCode,BillingPostalCode,BillingState,BillingStateCode,BillingStreet,Billing_Contact_Email_Addresses__c,Business_Start_Date__c,CreatedById,CreatedDate,Customer_Number__c,DBA_Name__c,Description,Exemption_No__c,Id,Industry,IsPartner,Is_501c3__c,LastActivityDate,LastModifiedById,LastModifiedDate,Lead_Type__c,Legacy_ID__c,Legacy_Source__c,Max_Contract_End_Date__c,Months_In_Business__c,Name,NumberOfEmployees,Open_Opportunities__c,Open_Opportunity_Amount__c,OrganizationID__c,OwnerId,ParentId,Partnership_Type__c,Partner_Service_Instructions__c,Phone,PhotoUrl,RecordTypeId,Revenue_Segment__c,ShippingAddress,ShippingCity,ShippingCountry,ShippingCountryCode,ShippingGeocodeAccuracy,ShippingLatitude,ShippingLongitude,ShippingPostalCode,ShippingState,ShippingStateCode,ShippingStreet,Sic,SicDesc,Type,Unique_Count__c,Website
          ) VALUES ?`;
         
+/*    var sqlInsertAccount = 'INSERT INTO ' + tableName + '(acct_id) VALUES ?';*/
+    
     mySqlConnection.connect(function(err) {
         if (err){
             console.log('Could not connect to MySQL.\n');
