@@ -107,11 +107,8 @@ const fnSync=function(){
             account.Legacy_ID__c                    AS legacy_id, \
 	 		account.Name                            AS acct_name, \
 	 		account.AccountNumber                   AS accountnumber, \
-	 		idnum.Name                              AS mid_1, \
-	 		idnum.Type__c                           AS mid_1_type, \
 	 		account.DBA_Name__c                     AS dba_name, \
 	 		contract.StartDate                      AS date_agreement_signed, \
-	 		idnum.Close_Date__c                     AS closure_date, \
 	 		account.Sic                             AS sic, \
 	 		user.Name                               AS owner_name, \
 	 		user.FirstName                          AS owner_firstname, \
@@ -129,13 +126,11 @@ const fnSync=function(){
 	 		+ strSelectFees + 
       ' FROM ?                                      AS account \
 		JOIN ?                                      AS asset ON account.Id = asset.AccountId \
-		JOIN ?                                      AS bank ON account.Id = bank.AccountId__c \
-		JOIN ?                                      AS idnum ON account.Id = idnum.AccountId__c \
 		JOIN ?                                      AS contract ON account.Id = contract.AccountId \
 		JOIN ?                                      AS user ON account.OwnerId = user.Id \
 	';
                                                           
-	var arrOutput = alasql(strQuery,[objData.Account,objData.Asset,objData.Bank_Account__c,objData.Identification_Number__c,objData.Contract,objData.User]);
+	var arrOutput = alasql(strQuery,[objData.Account,objData.Asset,objData.Contract,objData.User]);
     
     var arrRows = [];
 	// The in-memory JOIN is complete.
@@ -264,11 +259,8 @@ const fnInsert=function(arrRecords){
          legacy_id,
          acct_name, 
          accountnumber, 
-         mid_1, 
-         mid_1_type, 
          dba_name, 
          date_agreement_signed, 
-         closure_date, 
          sic, 
          owner_name, 
          owner_firstname, 

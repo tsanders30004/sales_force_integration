@@ -1,5 +1,6 @@
 config.js
 node_modules
+archive
 *.csv
 *.txt
 *.bat

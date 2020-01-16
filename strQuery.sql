@@ -377,3 +377,82 @@ SELECT
     ON acct.OwnerId = usr.Id 
  ORDER BY 3
 ;
+
+
+
+
+ SELECT 
+       acct.id                            AS acct_id
+      ,acct.legacy_id__c                  AS legacy_id
+      ,acct.name                          AS acct_name
+      ,acct.accountnumber                 AS accountnumber 
+      -- ,id_num.name                     AS mid_1 
+      -- ,id_num.type__c                  AS mid_1_type 
+      ,acct.dba_name__c                   AS dba_name 
+      ,con.startdate                      AS date_agreement_signed 
+      -- ,id_num.close_date__c            AS closure_date 
+      ,acct.sic                           AS sic 
+      ,usr.name                           AS owner_name
+      ,usr.firstname                      AS owner_firstname
+      ,usr.lastname                       AS owner_lastname
+      ,con.startdate                      AS bluefin_contract_start_date
+      ,acct.industry                      AS industry 
+      ,acct.revenue_segment__c            AS segment
+      ,acct.parentid                      AS parent_acct_id 
+      ,con.hold_billing__c                AS hold_billing
+      ,con.billing_hold_release_date__c   AS stop_billing
+      ,con.billing_preference__c          AS billing_situation
+      ,con.billing_frequency__c           AS billing_frequency
+      ,acct.lastmodifieddate              AS date_modified
+      ,acct.createddate                   AS date_updated 
+      ,asst.fee_name__c
+      ,asst.fee_amount__c
+    FROM account                          acct
+    LEFT JOIN asset                            asst
+      ON acct.Id = asst.AccountId 
+--     LEFT JOIN bank_account                     ba 
+--       ON acct.Id = ba.AccountId__c 
+  -- JOIN identification_number           id_num
+  -- ON acct.Id = idnum.AccountId__c 
+    LEFT JOIN contract                         con
+      ON acct.Id = con.AccountId 
+    LEFT JOIN usr              
+      ON acct.OwnerId = usr.Id 
+ ORDER BY 3
+;      
+
+
+
+
+
+
+DROP TABLE IF EXISTS tmp_1;
+CREATE TEMPORARY TABLE tmp_1
+SELECT 'acct_id' AS col_name, acct_id IS NULL AS col_is_null, length(acct_id) = 0 AS len_col_0, count(*) AS num_records FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'legacy_id' AS col_name, legacy_id IS NULL, length(legacy_id) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'acct_name' AS col_name, acct_name IS NULL, length(acct_name) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'accountnumber' AS col_name, accountnumber IS NULL, length(accountnumber) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'dba_name' AS col_name, dba_name IS NULL, length(dba_name) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'date_agreement_signed' AS col_name, date_agreement_signed IS NULL, length(date_agreement_signed) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'closure_date' AS col_name, closure_date IS NULL, length(closure_date) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'sic' AS col_name, sic IS NULL, length(sic) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'owner_name' AS col_name, owner_name IS NULL, length(owner_name) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'owner_firstname' AS col_name, owner_firstname IS NULL, length(owner_firstname) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'owner_lastname' AS col_name, owner_lastname IS NULL, length(owner_lastname) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'bluefin_contract_start_date' AS col_name, bluefin_contract_start_date IS NULL, length(bluefin_contract_start_date) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'industry' AS col_name, industry IS NULL, length(industry) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'segment' AS col_name, segment IS NULL, length(segment) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'parent_acct_id' AS col_name, parent_acct_id IS NULL, length(parent_acct_id) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'hold_billing' AS col_name, hold_billing IS NULL, length(hold_billing) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'stop_billing' AS col_name, stop_billing IS NULL, length(stop_billing) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'billing_situation' AS col_name, billing_situation IS NULL, length(billing_situation) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'billing_frequency' AS col_name, billing_frequency IS NULL, length(billing_frequency) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'date_modified' AS col_name, date_modified IS NULL, length(date_modified) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+UNION SELECT 'date_updated' AS col_name, date_updated IS NULL, length(date_updated) = 0, count(*) FROM test_cardconex_account GROUP BY 1, 2, 3
+;
+
+
+SELECT * 
+  FROM tmp_1
+ ORDER BY 1, 2, 3
+
