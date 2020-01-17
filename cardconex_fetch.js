@@ -33,6 +33,11 @@ var objQueries={
 
 var tableNameParameter = 'Account';    
 // var tableNameParameter = 'Bank_Account__c';    
+// var tableNameParameter = 'Identification_Number__c';
+// var tableNameParameter = 'Asset';
+// var tableNameParameter = 'RecordType';
+// var tableNameParameter = 'User';
+// var tableNameParameter = 'noSuchTable';
 
 var arrTables = [];
 
@@ -42,48 +47,74 @@ var fieldList;
 var insertStatement;
 var strQuery;
 
-if(arrTables[0] == 'Account'){
-    fieldList = objQueries.Account.substring(7, objQueries.Account.indexOf(' FROM'));
-    insertStatement = 'INSERT INTO '.concat(arrTables[0]).concat('(').concat(fieldList).concat(') VALUES ?');
-    strQuery = objQueries.Account.replace(" FROM ", " FROM ? ");    // adjust the SQL statement.
+if(tableNameParameter        == 'Account'){
+    fieldList                 = objQueries.Account.substring(7, objQueries.Account.indexOf(' FROM'));
+    insertStatement           = 'INSERT INTO '.concat(tableNameParameter).concat('(').concat(fieldList).concat(') VALUES ?');
+    strQuery                  = objQueries.Account.replace(" FROM ", " FROM ? ");
+}else if(tableNameParameter  == 'Bank_Account__c'){
+    fieldList                 = objQueries.Bank_Account__c.substring(7, objQueries.Bank_Account__c.indexOf(' FROM'));
+    insertStatement           = 'INSERT INTO '.concat(tableNameParameter).concat('(').concat(fieldList).concat(') VALUES ?');
+    strQuery                  = objQueries.Bank_Account__c.replace(" FROM ", " FROM ? "); 
+}else if(tableNameParameter  == 'Identification_Number__c'){
+    fieldList                 = objQueries.Identification_Number__c.substring(7, objQueries.Identification_Number__c.indexOf(' FROM'));
+    insertStatement           = 'INSERT INTO '.concat(tableNameParameter).concat('(').concat(fieldList).concat(') VALUES ?');
+    strQuery                  = objQueries.Identification_Number__c.replace(" FROM ", " FROM ? "); 
+}else if(tableNameParameter  == 'Asset'){
+    fieldList                 = objQueries.Asset.substring(7, objQueries.Asset.indexOf(' FROM'));
+    insertStatement           = 'INSERT INTO '.concat(tableNameParameter).concat('(').concat(fieldList).concat(') VALUES ?');
+    strQuery                  = objQueries.Asset.replace(" FROM ", " FROM ? "); 
+}else if(tableNameParameter  == 'RecordType'){
+    fieldList                 = objQueries.RecordType.substring(7, objQueries.RecordType.indexOf(' FROM'));
+    insertStatement           = 'INSERT INTO '.concat(tableNameParameter).concat('(').concat(fieldList).concat(') VALUES ?');
+    strQuery                  = objQueries.RecordType.replace(" FROM ", " FROM ? "); 
+}else if(tableNameParameter  == 'User'){
+    fieldList                 = objQueries.User.substring(7, objQueries.User.indexOf(' FROM'));
+    insertStatement           = 'INSERT INTO '.concat(tableNameParameter).concat('(').concat(fieldList).concat(') VALUES ?');
+    strQuery                  = objQueries.User.replace(" FROM ", " FROM ? "); 
 }
-else if(arrTables[0] == 'Bank_Account__c'){
-    fieldList = objQueries.Bank_Account__c.substring(7, objQueries.Bank_Account__c.indexOf(' FROM'));
-    insertStatement = 'INSERT INTO '.concat(arrTables[0]).concat('(').concat(fieldList).concat(') VALUES ?');
-}else{
-    console.log('error:  table name is invalid.\r\n');
+else{
+    console.log('ERROR:  Specified table name is invalid.\r\n');
+    process.exit(22);
 }
-
-
 
 var objData={};
 
-const currentTimestamp = function(){
+const currentTimestamp = function(){    
     // returns the current timestamp un YYYYMMDD_HHMMSS format.
     return new Date().toISOString().replace(/T/, '_').replace(/-/g, '').replace(/:/g, '').substring(0, 14);
 }
 
 const fnSync=function(){
-    
-	for(var i=0;i<arrTables.length;i++){
-		if(!objData[arrTables[i]] || objData[arrTables[i]].length === 0){ 
-			console.log('Waiting on records for ' + arrTables[i] + '...' );
-			return false;
-		}
-	}
 
-    // var strQuery = objQueries.Account.replace(" FROM ", " FROM ? ");    // adjust the SQL statement.
+    if(!objData[tableNameParameter] || objData[tableNameParameter].length === 0){ 
+        console.log('Waiting on records for ' + tableNameParameter + '.' );
+        return false;
+    }
 
-
-	var arrOutput = alasql(strQuery,[objData.Account]);                 // execute the SQL statement and store the result set in an array of objects, one for each row.              
-
-
+    if(tableNameParameter == 'Account'){
+        var arrOutput = alasql(strQuery,[objData.Account]);     // execute the SQL statement and store the result set in an array of objects, one for each row.               
+    }else if(tableNameParameter == 'Bank_Account__c'){
+        var arrOutput = alasql(strQuery,[objData.Bank_Account__c]); 
+    }else if(tableNameParameter == 'Identification_Number__c'){
+        var arrOutput = alasql(strQuery,[objData.Identification_Number__c]); 
+    }
+    else if(tableNameParameter == 'Asset'){
+        var arrOutput = alasql(strQuery,[objData.Asset]); 
+    }else if(tableNameParameter == 'RecordType'){
+        var arrOutput = alasql(strQuery,[objData.RecordType]); 
+    }else if(tableNameParameter == 'User'){
+        var arrOutput = alasql(strQuery,[objData.User]); 
+    }
+    else{
+        console.log('Function fnSync() does not support specified table name (' + tableNameParameter + '.');
+    }
+                
     /* convert the result set from an array of objects to an array of rows that fnInsertRows can use to update the database. */
     var arrRows = [];          
     for (var i=0; i<arrOutput.length; i++){
         arrRows[i] = Object.values(arrOutput[i]);
     }
-    fnInsertRows(arrRows, 'account');
+    fnInsertRows(arrRows, tableNameParameter.toLowerCase());
 }
 
 const fnQuery=function(strTable){
@@ -91,37 +122,15 @@ const fnQuery=function(strTable){
 	sfConnect.query(objQueries[strTable], function(objError, objResponse) {
 	    if (objError) { return console.error(objError); }
 	    if(objResponse.records){ 
-	    	objData[strTable]=fnConvert(strTable,objResponse.records); 
+            objData[strTable]=objResponse.records;
 	    	fnSync(); 
 	    }
 	    else{console.log('still waiting on records for '+ strTable)}
 	});
 };
 
-const fnConvert=function(strTable,arrRecords){
-	var arrResults=[];
-	//change the asset - fee records
-	if(strTable === 'Asset'){
-		console.log('processing '+arrRecords.length+' asset records');
-		for(var i=0;i<arrRecords.length;i++){
-			var objRecord=arrRecords[i];
-			for( var ii=0;ii<arrFees.length;ii++){
-				if(objRecord.Fee_Name__c == arrFees[ii]){
-					objRecord[objFeeMap[arrFees[ii]]] = objRecord.Fee_Amount__c; 
-				}
-				else{ objRecord[objFeeMap[arrFees[ii]]] = 0; }
-			}
-			arrResults.push(objRecord);
-		}
-	}else{
-		arrResults=arrRecords;
-	}
-	return arrResults;
-}
-
 const fnSave=function(arrData,strFile){
-	console.log('saving file: ',strFile);
-	//https://www.papaparse.com/docs#json-to-csv
+	console.log('saving file: ',strFile); //https://www.papaparse.com/docs#json-to-csv
 	var strData = Papa.unparse(arrData);
 
     /* 
@@ -138,8 +147,6 @@ const fnSave=function(arrData,strFile){
 	fs.writeFile(strOutFile, strData,(err) => { if (err) throw err; });         
 };
 
-
-
 const fnInsertRows=function(arrRecords, tableName){
 /*
     PURPOSE:  INSERT rows into the database.
@@ -148,7 +155,8 @@ const fnInsertRows=function(arrRecords, tableName){
     i.e., arrRecords[i][j] represents the jth column of the ith row.
 */
 
-	console.log('Number for rows to add to the database:  ' + arrRecords.length);
+	console.log('Number for rows to add to the database for ' + tableNameParameter + ' table = ' + arrRecords.length + '.');
+    console.log('Populating ' + tableNameParameter.toLowerCase() + ' table...');
 
     mySqlConnection.connect(function(err) {
         if (err){
@@ -180,8 +188,10 @@ sfConnect.login(config.sf.user, config.sf.password, function(objLoginError, objL
     }
   
     // import table  
-    for(var i=0; i<arrTables.length; i++){ 
+/*    for(var i=0; i<arrTables.length; i++){ 
         fnQuery(arrTables[i]); 
-    }
+    }*/
+
+    fnQuery(tableNameParameter);
   
 });
