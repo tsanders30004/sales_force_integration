@@ -31,25 +31,30 @@ var objQueries={
 };
 
 
-var tableNameParameter = 'Account';     // later, pass this variable as a command-line paramter.
-console.log('\r\nd1 tableNameParameter = ' + tableNameParameter);
+var tableNameParameter = 'Account';    
+// var tableNameParameter = 'Bank_Account__c';    
+
 var arrTables = [];
 
 arrTables.push(tableNameParameter);
-console.log('\r\nd2 arrTables = ' + arrTables);
-// convert the following to a function 
+
 var fieldList;
 var insertStatement;
+var strQuery;
 
 if(arrTables[0] == 'Account'){
     fieldList = objQueries.Account.substring(7, objQueries.Account.indexOf(' FROM'));
-    console.log('\r\nd3 fieldList = ' + fieldList);
-
     insertStatement = 'INSERT INTO '.concat(arrTables[0]).concat('(').concat(fieldList).concat(') VALUES ?');
-    console.log('\r\nd4 insertStatement = ' + insertStatement);
-}else{
-    console.log('debug 1 something with with table name');
+    strQuery = objQueries.Account.replace(" FROM ", " FROM ? ");    // adjust the SQL statement.
 }
+else if(arrTables[0] == 'Bank_Account__c'){
+    fieldList = objQueries.Bank_Account__c.substring(7, objQueries.Bank_Account__c.indexOf(' FROM'));
+    insertStatement = 'INSERT INTO '.concat(arrTables[0]).concat('(').concat(fieldList).concat(') VALUES ?');
+}else{
+    console.log('error:  table name is invalid.\r\n');
+}
+
+
 
 var objData={};
 
@@ -67,11 +72,11 @@ const fnSync=function(){
 		}
 	}
 
-    var strQuery = objQueries.Account.replace(" FROM ", " FROM ? ");    // adjust the SQL statement.
-    console.log('\r\nd5 strQuery = ' + strQuery);
+    // var strQuery = objQueries.Account.replace(" FROM ", " FROM ? ");    // adjust the SQL statement.
+
 
 	var arrOutput = alasql(strQuery,[objData.Account]);                 // execute the SQL statement and store the result set in an array of objects, one for each row.              
-    console.log('\r\nd6 [objData.Account] = ' + [objData.Account]);
+
 
     /* convert the result set from an array of objects to an array of rows that fnInsertRows can use to update the database. */
     var arrRows = [];          
@@ -144,7 +149,6 @@ const fnInsertRows=function(arrRecords, tableName){
 */
 
 	console.log('Number for rows to add to the database:  ' + arrRecords.length);
-    console.log('d2 = ' + tableName);
 
     mySqlConnection.connect(function(err) {
         if (err){
