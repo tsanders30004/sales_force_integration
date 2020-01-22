@@ -59,7 +59,7 @@ SELECT
   FROM test_cardconex_account   AS b
 /*  LEFT JOIN identification_number   AS id_num 
     ON b.acct_id = id_num.account_id*/
- WHERE b.legacy_id = @legacy_id
+ -- WHERE b.legacy_id = @legacy_id
  ORDER BY 2, 3 
 ;  
 
@@ -456,3 +456,148 @@ SELECT *
   FROM tmp_1
  ORDER BY 1, 2, 3
 
+
+ 
+ 
+ 
+ USE sales_force;
+ 
+ CREATE TABLE chain__c(createdbyid varchar(64), createddate varchar(64), id varchar(64), lastmodifiedbyid varchar(64), lastmodifieddate varchar(64), legacy_id__c varchar(64), name varchar(64), ownerid varchar(64), total_residual_after_payout_all_time__c varchar(64), type_of_chain__c VARCHAR(64));
+ 
+ 
+ 
+ 
+ CREATE TABLE sales_contract__c(AccountId__c VARCHAR(64), Additional_Documentation_Needed__c VARCHAR(64),  Billing_AccountId__c VARCHAR(64),  Billing_Frequency__c VARCHAR(64),  Billing_Hold_Reason__c VARCHAR(64),  Billing_Hold_Release_Date__c VARCHAR(64),  Billing_Month__c VARCHAR(64),  Billing_Preference__c VARCHAR(64),  Collection_Method__c VARCHAR(64),  Contract_End_Date__c VARCHAR(64),  Contract_Start_Date__c VARCHAR(64),  Contract_Term_months__c VARCHAR(64),  CreatedById VARCHAR(64),  CreatedDate VARCHAR(64),  Hold_Billing__c VARCHAR(64),  Id VARCHAR(64),  IsDeleted VARCHAR(64),  LastActivityDate VARCHAR(64),  LastModifiedById VARCHAR(64),  LastModifiedDate VARCHAR(64),  Name VARCHAR(64),  OpportunityId__c VARCHAR(64),  OrganizationId__c VARCHAR(64),  OwnerId VARCHAR(64),  PriceBookId__c VARCHAR(64),  RecordTypeId VARCHAR(64),  Revenue_Segment__c VARCHAR(64),  Status__c VARCHAR(64));
+ 
+ 
+ 
+ 
+ SELECT  
+     acct.Id                             AS acct_id
+    ,acct.Legacy_ID__c                   AS legacy_id
+    ,acct.Name                           AS acct_name
+    ,acct.AccountNumber                  AS acctnumber
+    ,acct.DBA_Name__c                    AS dba_name
+    ,cont.contract_start_date__c         AS date_agreement_signed
+    ,acct.Sic                            AS sic
+    ,user.Name                           AS owner_name
+    ,user.FirstName                      AS owner_firstname
+    ,user.LastName                       AS owner_lastname
+    ,cont.contract_start_date__c         AS bluefin_cont_start_date
+    ,acct.Industry                       AS industry
+    ,acct.revenue_segment__c             AS segment
+    ,acct.ParentId                       AS parent_acct_id
+    ,cont.Hold_Billing__c                AS hold_billing
+    ,cont.Billing_Hold_Release_Date__c   AS stop_billing
+    ,cont.Billing_Preference__c          AS  billing_situation
+    ,cont.Billing_Frequency__c           AS billing_frequency
+    ,acct.LastModifiedDate               AS date_modified
+    ,acct.CreatedDate                    AS date_updated 
+    ,REPLACE(
+  FROM account                           AS acct
+  JOIN asset                             AS asst 
+    ON acct.id = asst.AccountId      
+  JOIN sales_contract__c                 AS cont
+    ON acct.Id = cont.AccountId__c 
+  JOIN `user`                            AS `user`
+    ON acct.OwnerId = user.Id  
+ WHERE acct.id = @account_id;
+;
+
+truncate fee_map;
+
+flush tables;
+
+SELECT @legacy_id, @account_id;
+
+SELECT * FROM asset;
+SELECT * FROM fee_map;
+ALTER TABLE fee_map CHANGE COLUMN fee_desc name varchar(64);
+DESC fee_map;
+
+SELECT 
+     asst.accountid
+    ,asst.name 
+    ,fm.fee
+    ,asst.fee_amount__c
+  FROM asset          AS asst
+  LEFT JOIN fee_map   AS fm
+    ON asst.name = fm.name
+ ;
+    
+ 
+ 
+ SELECT * FROM fee_map;
+ 
+ SELECT max(LENGTH(name)), max(LENGTH(fee)) FROM fee_map;
+ 
+ DESC fee_map;
+ 
+UPDATE fee_map SET notes = 'Note that this fee name appears twice; one time each for ach_per_gw_trans_fee and per_transaction_fee.' WHERE name = 'GW Per Transaction Fee';
+
+ 
+ ALTER TABLE fee_map CHANGE COLUMN notes notes varchar(128);
+ 
+ SELECT LENGTH(notes) FROM fee_map;
+    
+ 
+ 
+ ALTER TABLE fee_map ADD COLUMN mysql_date_created timestamp NOT NULL DEFAULT current_timestamp ON UPDATE current_timestamp;
+    
+    
+ ALTER TABLE fee_map ADD COLUMN notes varchar(64) AFTER fee;
+ 
+ 
+    
+    
+    SELECT * FROM asset;
+    
+  
+  
+  
+DESC test_cardconex_account;
+
+SELECT count(*) FROM test_cardconex_account 
+
+
+
+
+
+
+
+USE sales_force;
+
+ALTER TABLE test_cardconex_account
+CHANGE COLUMN date_updated date_updated datetime;
+
+DESC test_cardconex_account;
+
+ALTER TABLE test_cardconex_account ADD COLUMN import_time timestamp NOT NULL DEFAULT current_timestamp;
+
+
+
+
+SELECT fee, name FROM fee_map ORDER BY fee;
+
+
+
+
+SELECT s.column_name, 
+s.column_name LIKE '%rate%' OR s.column_name LIKE '%fee%' OR s.column_name = 'p2pe_device_activated' AS fee_col,
+t.column_name FROM 
+(SELECT column_name, column_type FROM tsanders.v_desc_rc WHERE db=DATABASE() AND table_name = 'stg_cardconex_account') s 
+LEFT JOIN 
+(SELECT column_name, column_type FROM tsanders.v_desc_rc WHERE db=DATABASE() AND table_name = 'test_cardconex_account') t 
+  ON s.column_name = t.column_name
+ORDER BY 2, 1
+;
+  
+  
+ALTER TABLE test_cardconex_account ADD COLUMN ach_per_gw_trans_fee decimal(16,4) AFTER ach_noc_fee;
+
+
+
+
+
+
+SELECT * FROM tmp_updated;
