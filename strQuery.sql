@@ -601,3 +601,159 @@ ALTER TABLE test_cardconex_account ADD COLUMN ach_per_gw_trans_fee decimal(16,4)
 
 
 SELECT * FROM tmp_updated;
+
+
+
+
+SELECT       'ods.payconex_volume_day' AS table_name, max(source_file) AS most_recent_file, min(date_updated) AS min_date_updated, max(date_updated) AS max_date_updated, count(*) AS num_rows FROM ods.payconex_volume_day
+UNION SELECT 'ods.decryptx_device_day', max(source_file), min(date_updated) , max(date_updated) , count(*) AS num_rows FROM ods.decryptx_device_day
+UNION SELECT 'ods.stg_cardconex_account', max(source_file), min(date_updated) , max(date_updated) , count(*) AS num_rows FROM ods.stg_cardconex_account 
+UNION SELECT 'ods.bank_accountt', max(source_file), min(date_updated) , max(date_updated) , count(*) AS num_rows FROM ods.bank_account
+UNION SELECT 'ods.decryptx_device_day', max(source_file), min(date_updated) , max(date_updated) , count(*) AS num_rows FROM ods.decryptx_device_day
+UNION SELECT 'ods.serial_number', max(source_file), min(date_updated) , max(date_updated) , count(*) AS num_rows FROM ods.serial_number
+UNION SELECT 'ods.decryptx_device_detail', max(source_file), min(date_updated) , max(date_updated) , count(*) AS num_rows FROM ods.decryptx_device_detail;
+
+
+
+SELECT       'ods.payconex_volume_day' AS table_name 
+UNION SELECT 'ods.decryptx_device_day'
+UNION SELECT 'ods.stg_cardconex_account'
+UNION SELECT 'ods.bank_accountt'
+UNION SELECT 'ods.decryptx_device_day'
+UNION SELECT 'ods.serial_number'
+UNION SELECT 'ods.decryptx_device_detail'
+
+
+SELECT rpad(t.table_name, 32, ' ') AS table_name, rpad(f.most_recent_file, 60, ' ') AS most_recent_file, rpad(f.min_date_updated, 19, ' ') AS min_date_updated, rpad(f.max_date_updated, 19, ' ') AS max_date_updated, rpad(f.num_rows, 12, ' ') AS num_rows
+  FROM (
+      SELECT       'ods.payconex_volume_day' AS table_name 
+      UNION SELECT 'ods.decryptx_device_day'
+      UNION SELECT 'ods.stg_cardconex_account'
+      UNION SELECT 'ods.bank_accountt'
+      UNION SELECT 'ods.decryptx_device_day'
+      UNION SELECT 'ods.serial_number'
+      UNION SELECT 'ods.decryptx_device_detail'
+  ) t 
+  LEFT JOIN (
+      SELECT       'ods.payconex_volume_day' AS table_name, max(source_file) AS most_recent_file, min(date_updated) AS min_date_updated, max(date_updated) AS max_date_updated, count(*) AS num_rows FROM ods.payconex_volume_day
+      UNION SELECT 'ods.decryptx_device_day', max(source_file), min(date_updated) , max(date_updated) , count(*) AS num_rows FROM ods.decryptx_device_day
+      UNION SELECT 'ods.stg_cardconex_account', max(source_file), min(date_updated) , max(date_updated) , count(*) AS num_rows FROM ods.stg_cardconex_account 
+      UNION SELECT 'ods.bank_accountt', max(source_file), min(date_updated) , max(date_updated) , count(*) AS num_rows FROM ods.bank_account
+      UNION SELECT 'ods.decryptx_device_day', max(source_file), min(date_updated) , max(date_updated) , count(*) AS num_rows FROM ods.decryptx_device_day
+      UNION SELECT 'ods.serial_number', max(source_file), min(date_updated) , max(date_updated) , count(*) AS num_rows FROM ods.serial_number
+      UNION SELECT 'ods.decryptx_device_detail', max(source_file), min(date_updated) , max(date_updated) , count(*) AS num_rows FROM ods.decryptx_device_detail
+  ) f ON t.table_name = f.table_name 
+ ORDER BY f.max_date_updated DESC
+;
+
+
+SELECT LENGTH('ods.decryptx_device_detail');
+
+CREATE VIEW v_show_table_stats AS 
+      SELECT 'account' AS table_name, min(mysql_import_timestamp), max(mysql_import_timestamp), count(*) FROM sales_force.account
+UNION SELECT 'asset' AS table_name, min(mysql_import_timestamp), max(mysql_import_timestamp), count(*) FROM sales_force.asset
+UNION SELECT 'bank_account__c' AS table_name, min(mysql_import_timestamp), max(mysql_import_timestamp), count(*) FROM sales_force.bank_account__c
+UNION SELECT 'chain__c' AS table_name, min(mysql_import_timestamp), max(mysql_import_timestamp), count(*) FROM sales_force.chain__c
+UNION SELECT 'identification_number__c' AS table_name, min(mysql_import_timestamp), max(mysql_import_timestamp), count(*) FROM sales_force.identification_number__c
+UNION SELECT 'recordtype' AS table_name, min(mysql_import_timestamp), max(mysql_import_timestamp), count(*) FROM sales_force.recordtype
+UNION SELECT 'sales_contract__c' AS table_name, min(mysql_import_timestamp), max(mysql_import_timestamp), count(*) FROM sales_force.sales_contract__c
+UNION SELECT 'user' AS table_name, min(mysql_import_timestamp), max(mysql_import_timestamp), count(*) FROM sales_force.USER
+;
+
+
+
+SELECT DATABASE();
+
+
+
+
+USE sales_force;
+
+SHOW tables;
+
+SELECT 
+
+
+
+-- 22 jan 2020
+
+-- legacy_id           delta_per_transaction_fee
+-- 0010B00001zUAODQA4  [NULL]
+-- 001U000001RzapUIAR  [NULL]
+-- 001U000001V2Z7fIAF  -0.05
+
+SET @legacy_id = '001U000001V2Z7fIAF';
+SET @acct_id = (SELECT id FROM account WHERE legacy_id__c = @legacy_id);
+SELECT @acct_id, @legacy_id;
+
+SELECT acct_id, dba_name, per_transaction_fee, ach_per_gw_trans_fee FROM stg_cardconex_account WHERE acct_id = @legacy_id;
+
+-- acct_id           |per_transaction_fee|ach_per_gw_trans_fee|
+-- ------------------|-------------------|--------------------|
+-- 001U000001V2Z7fIAF|             0.0500|              0.0000|
+
+-- so the existing object has data for the suspect cc_acct_id
+
+SELECT 
+     t1.accountid
+    ,t2.dba_name__c
+    ,t1.fee_name__c
+    ,t1.fee_amount__c
+    ,fm.name
+    ,fm.fee
+  FROM asset      t1
+  JOIN account    t2 
+    ON t1.accountid = t2.id
+  LEFT JOIN fee_map fm 
+    ON t1.fee_name__c = fm.name
+ WHERE t1.accountid = @acct_id
+;
+
+-- scratch
+
+SELECT * FROM account WHERE legacy_id__c = @legacy_id;
+
+SELECT * FROM asset WHERE accountid = @acct_id;
+
+
+SELECT
+     fee_name__c
+    ,fee_amount__c
+  FROM asset 
+ WHERE accountid = @acct_id;
+
+
+SELECT * FROM fee_map WHERE name LIKE '%auth%';
+
+SELECT fee_name__c, count(*) 
+  FROM asset 
+ WHERE fee_name__c NOT IN (SELECT name FROM fee_map)
+ GROUP BY 1 
+ ORDER BY 1
+;
+
+
+-- fee_name__c          |count(*)|
+-- ---------------------|--------|
+-- GW Auth Fee          |       6|
+-- P2PE Monthly Flat Fee|       5|
+
+
+SELECT * FROM fee_map ORDER BY 1;
+
+
+
+
+
+SELECT * FROM fee_map;
+
+INSERT INTO fee_map values('GW Auth Fee', 'pricing_per_transaction_fee', 'Was previously not in the node.js code.', current_timestamp);
+
+
+DESC fee_map;
+
+
+
+
+
+SELECT * FROM fee_map  WHERE fee IN ('p2pe_monthly_flat_fee', 'one_time_key_injection_fees');
