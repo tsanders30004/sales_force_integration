@@ -33,6 +33,11 @@ var objQueries={
 };
 
 var tableNameParameter = process.argv.slice(2)[0].substring(2);
+/* 
+var envParameter = process.argv.slice(3)[0].substring(2);
+console.log(tableNameParameter);
+console.log(envParameter); 
+*/
 
 var arrTables = [];
 
@@ -41,6 +46,9 @@ arrTables.push(tableNameParameter);
 var fieldList;
 var insertStatement;
 var strQuery;
+
+var sfUserId = config.sf.user;
+var sfPassword = config.sf.password;
 
 /* Derive INSERT Statements */
 if(tableNameParameter        == 'Account'){
@@ -196,7 +204,7 @@ const fnInsertRows=function(arrRecords, tableName){
 }
 
 /* main */
-sfConnect.login(config.sf.user, config.sf.password, function(objLoginError, objLoginResponse){
+sfConnect.login(sfUserId, sfPassword, function(objLoginError, objLoginResponse){
 
     showHeader();
 
