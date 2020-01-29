@@ -22,7 +22,7 @@ var mySqlConnection = mysql.createConnection({host: 'localhost', user: 'tsanders
 
 var objQueries={
 	 "Account":                  'SELECT AccountNumber,Site,AccountSource,Account_Status__c,Active_ACH_IDs__c,Active_Acquiring_IDs__c,Active_Encryption_IDs__c,Active_Gateway_IDs__c,Active_Services__c,Additional_Documentation_Needed__c,BillingCity,BillingCountry,BillingCountryCode,BillingPostalCode,BillingState,BillingStateCode,BillingStreet,Billing_Contact_Email_Addresses__c,Business_Start_Date__c,CreatedById,CreatedDate,Customer_Number__c,DBA_Name__c,Description,Exemption_No__c,Id,Industry,IsPartner,Is_501c3__c,LastActivityDate,LastModifiedById,LastModifiedDate,Lead_Type__c,Legacy_ID__c,Legacy_Source__c,Max_Contract_End_Date__c,Months_In_Business__c,Name,NumberOfEmployees,Open_Opportunities__c,Open_Opportunity_Amount__c,OrganizationID__c,OwnerId,ParentId,Partnership_Type__c,Partner_Service_Instructions__c,Phone,PhotoUrl,RecordTypeId,Revenue_Segment__c,ShippingAddress,ShippingCity,ShippingCountry,ShippingCountryCode,ShippingGeocodeAccuracy,ShippingLatitude,ShippingLongitude,ShippingPostalCode,ShippingState,ShippingStateCode,ShippingStreet,Sic,SicDesc,Type,Unique_Count__c,Website FROM Account'
-    ,"Asset":                    'SELECT AccountId,AssetLevel,ContractId__c,CreatedById,CreatedDate,Description,Fee_Amount_Text__c,Fee_Amount__c,Fee_Group__c,Fee_Name__c,Id,Identification_NumberId__c,ID_Number_Text__c,InstallDate,LastModifiedById,LastModifiedDate,Name,OwnerId,ParentId,Price,Product2Id,ProductCode,PurchaseDate,Quantity,Quote_Line_ItemId__c,SerialNumber,Status,UsageEndDate FROM Asset'
+    ,"Asset":                    'SELECT AccountId,AssetLevel,ContractId__c,CreatedById,CreatedDate,Description,Fee_Amount_Text__c,Fee_Amount__c,Fee_Group__c,Fee_Name__c,Id,Identification_NumberId__c,ID_Number_Text__c,InstallDate,LastModifiedById,LastModifiedDate,Name,OwnerId,ParentId,Price,Product2Id,ProductCode,PurchaseDate,Quantity,Quote_Line_ItemId__c,Sales_ContractId__c,SerialNumber,Status,UsageEndDate FROM Asset'
 	,"Bank_Account__c":          'SELECT Bank_Name__c,ABA__c,AccountId__c,Account_Type__c,ACH_Debit_Account_Name__c,ACH_Descriptor__c,Bank_Account_Number__c,Bank_Account_Type__c,Bank_City__c,Bank_Contact_Name__c,Bank_Phone__c,Bank_Postal_Code__c,Bank_State__c,Bank_Street_Address__c,Business_Person_Named_on_teh_account__c,CreatedById,CreatedDate,Id,LastModifiedDate,Name FROM Bank_Account__c'
     ,"Chain__c":                 'SELECT CreatedById,CreatedDate,Id,LastModifiedById,LastModifiedDate,Legacy_ID__c,Name,OwnerId,Total_Residual_After_Payout_All_Time__c,Type_of_Chain__c FROM Chain__c'
 	,"Identification_Number__c": 'SELECT AccountId__c,Category__c,Close_Date__c,CreatedById,CreatedDate,Id,LastModifiedById,LastModifiedDate,Name,OwnerId,RecordTypeId,Start_Date__c,Status__c,Type__c,Unique_ID__c,Warnings__c FROM Identification_Number__c'
@@ -93,6 +93,7 @@ var objData={};
 const showHeader = function(){
 
     var cmdLineArgs = process.argv.slice(2);
+    /*  
     console.log(cmdLineArgs);
     console.log('Usage: node cardconex_fetch.js -tTABLENAME\r\n');
     console.log('Currently supported tables:');
@@ -103,8 +104,9 @@ const showHeader = function(){
     console.log('   Identification_Number__c');
     console.log('   RecordType');
     console.log('   Sales_Contract__c');
-    console.log('   User');
-    console.log('\r\n');
+    console.log('   User'); 
+    console.log('Currently supported tables: [Account, Asset, Bank_Account__c, Chain__c, Identification_Number__c, RecordType, Sales_Contract__c, User\r\n');
+    */
 
     if(cmdLineArgs.length==0){
         console.log('No command-line arguments were provided.');
@@ -195,7 +197,7 @@ const fnInsertRows=function(arrRecords, tableName){
                 if(err){
                     console.log('MySQL ERROR ' + err.errno + ': ' + err.code + '\n' + err.sqlMessage);
                 }else{
-                    console.log('MySQL Status:  ' + results.message.substr(1, 128));
+                    console.log('MySQL Status:  ' + results.message.substr(1, 128) + '\r\n');
                 }
             });
             mySqlConnection.end();

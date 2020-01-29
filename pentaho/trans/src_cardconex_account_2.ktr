@@ -446,32 +446,11 @@
   </info>
   <notepads>
     <notepad>
-      <note>IMPORTANT&#xd;&#xa;---------&#xd;&#xa;If rows in fee_map are inserted, deleted, or updated, &#xd;&#xa;then the demormalize_asset_rows and replace_null_fees_with_zero steps&#xd;&#xa;will have to be udpated to match.&#xd;&#xa;&#xd;&#xa;21 Jan 2020&#xd;&#xa;-----------&#xd;&#xa;There are apparently some merchants with no fees &#xd;&#xa;which precludes a NOT NULL constraint in the database.&#xd;&#xa;&#xd;&#xa;acct_id &#x3d; &#x27;0013i00000Cg8RhAAJ&#x27; is an example...  &#xd;&#xa;&#xd;&#xa;Need to research in more detail.</note>
+      <note>IMPORTANT&#xd;&#xa;---------&#xd;&#xa;If rows in fee_map are inserted, deleted, or updated, &#xd;&#xa;then the get_asset_data and subsequent steps will have to be edited.&#xd;&#xa;&#xd;&#xa;28 Jan 2020&#xd;&#xa;-----------&#xd;&#xa;There have been cases where the number of rows added to test_cardconex_account has been about half &#xd;&#xa;of the number of rows in the the merge_account_and_asset_data output stream.  &#xd;&#xa;No cause has been identified.  Keep an eye on this and if it happens again, some kind of fix &#xd;&#xa;will have to be defined and implemented.&#xd;&#xa;&#xd;&#xa;The original stg_cardconex_account table does not have a p2pe_transaction_fee.&#xd;&#xa;But I added one to test_cardconex_account.</note>
       <xloc>16</xloc>
-      <yloc>16</yloc>
-      <width>494</width>
-      <heigth>209</heigth>
-      <fontname>Courier New</fontname>
-      <fontsize>9</fontsize>
-      <fontbold>N</fontbold>
-      <fontitalic>N</fontitalic>
-      <fontcolorred>0</fontcolorred>
-      <fontcolorgreen>0</fontcolorgreen>
-      <fontcolorblue>0</fontcolorblue>
-      <backgroundcolorred>255</backgroundcolorred>
-      <backgroundcolorgreen>205</backgroundcolorgreen>
-      <backgroundcolorblue>112</backgroundcolorblue>
-      <bordercolorred>100</bordercolorred>
-      <bordercolorgreen>100</bordercolorgreen>
-      <bordercolorblue>100</bordercolorblue>
-      <drawshadow>Y</drawshadow>
-    </notepad>
-    <notepad>
-      <note>22 Jan 2020&#xd;&#xa;-----------&#xd;&#xa;Use H&#x3a;&#x5c;sales_force_overhaul&#x5c;fees_assets_column_names_map_R10.xls &#xd;&#xa;for help in editing the SQL statement.</note>
-      <xloc>48</xloc>
-      <yloc>448</yloc>
-      <width>466</width>
-      <heigth>66</heigth>
+      <yloc>0</yloc>
+      <width>704</width>
+      <heigth>208</heigth>
       <fontname>Courier New</fontname>
       <fontsize>9</fontsize>
       <fontbold>N</fontbold>
@@ -517,11 +496,6 @@
   </connection>
   <order>
     <hop>
-      <from>get_account_data</from>
-      <to>convert_date_format</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
       <from>sort_account_data</from>
       <to>merge_account_and_asset_data</to>
       <enabled>Y</enabled>
@@ -537,41 +511,6 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>select_values</from>
-      <to>populate_test_cardconex_account</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>convert_date_format</from>
-      <to>calculations</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>calculations</from>
-      <to>sort_account_data</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>get_asset_data</from>
-      <to>denormalize_asset_rows</to>
-      <enabled>N</enabled>
-    </hop>
-    <hop>
-      <from>replace_null_fees_with_zero</from>
-      <to>sort_asset_data</to>
-      <enabled>N</enabled>
-    </hop>
-    <hop>
-      <from>denormalize_asset_rows</from>
-      <to>replace_null_fees_with_zero</to>
-      <enabled>N</enabled>
-    </hop>
-    <hop>
-      <from>select_values</from>
-      <to>debug_01_select_values</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
       <from>get_asset_data_02</from>
       <to>group_by_acct_id</to>
       <enabled>Y</enabled>
@@ -579,6 +518,31 @@
     <hop>
       <from>group_by_acct_id</from>
       <to>sort_asset_data</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>select_values</from>
+      <to>set_null_fees_to_zero</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>set_null_fees_to_zero</from>
+      <to>populate_test_cardconex_account</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>get_account_data</from>
+      <to>calculations</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>calculations</from>
+      <to>convert_date_format</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>convert_date_format</from>
+      <to>sort_account_data</to>
       <enabled>Y</enabled>
     </hop>
   </order>
@@ -597,7 +561,7 @@
     <optimizationLevel>9</optimizationLevel>
     <jsScripts>      <jsScript>        <jsScript_type>0</jsScript_type>
         <jsScript_name>Script 1</jsScript_name>
-        <jsScript_script>var closure_date &#x3d; &#x27;how is this defined&#x3f;&#x27;&#x3b;&#xd;&#xa;</jsScript_script>
+        <jsScript_script>var closure_date &#x3d; &#x27;Use Identification_Number__c.Close Date&#x3f;&#x27;&#x3b;&#xd;&#xa;</jsScript_script>
       </jsScript>    </jsScripts>    <fields>      <field>        <name>closure_date</name>
         <rename>closure_date</rename>
         <type>String</type>
@@ -612,7 +576,7 @@
       </output>
     </remotesteps>
     <GUI>
-      <xloc>304</xloc>
+      <xloc>192</xloc>
       <yloc>256</yloc>
       <draw>Y</draw>
     </GUI>
@@ -633,7 +597,7 @@
     <optimizationLevel>9</optimizationLevel>
     <jsScripts>      <jsScript>        <jsScript_type>0</jsScript_type>
         <jsScript_name>Script 1</jsScript_name>
-        <jsScript_script>&#x2f;&#x2a; &#xd;&#xa;     converts date format.  Example&#x3a;  2020-01-14T20&#x3a;14&#x3a;54.000&#x2b;0000 becomes 20200114201454&#xd;&#xa;&#x2a;&#x2f;&#xd;&#xa;&#xd;&#xa;&#xd;&#xa;var dt_modified&#x3b;&#xd;&#xa;var dt_updated&#x3b;&#xd;&#xa;&#xd;&#xa;function reformat_date&#x28;d&#x29;&#x7b;&#xd;&#xa;   return d.substring&#x28;0, 4&#x29;&#xd;&#xa;            .concat&#x28;d.substr&#x28;5, 2&#x29;&#x29;&#xd;&#xa;            .concat&#x28;d.substr&#x28;8, 2&#x29;&#x29;&#xd;&#xa;            .concat&#x28;d.substr&#x28;11, 2&#x29;&#x29;&#xd;&#xa;            .concat&#x28;d.substr&#x28;14, 2&#x29;&#x29;&#xd;&#xa;            .concat&#x28;d.substr&#x28;17, 2&#x29;&#x29;&#x3b;&#xd;&#xa;&#x7d;&#xd;&#xa;&#xd;&#xa;&#xd;&#xa;dt_modified &#x3d; reformat_date&#x28;date_modified&#x29;&#x3b;&#xd;&#xa;dt_updated  &#x3d; reformat_date&#x28;date_updated&#x29;&#x3b;</jsScript_script>
+        <jsScript_script>&#x2f;&#x2a; &#xd;&#xa;     converts date format.  Example&#x3a;  2020-01-14T20&#x3a;14&#x3a;54.000&#x2b;0000 becomes 20200114201454&#xd;&#xa;&#x2a;&#x2f;&#xd;&#xa;&#xd;&#xa;&#xd;&#xa;var dt_modified&#x3b;&#xd;&#xa;var dt_updated&#x3b;&#xd;&#xa;&#xd;&#xa;function reformat_date&#x28;d&#x29;&#x7b;&#xd;&#xa;   return d.substring&#x28;0, 4&#x29;&#xd;&#xa;            .concat&#x28;d.substr&#x28;5, 2&#x29;&#x29;&#xd;&#xa;            .concat&#x28;d.substr&#x28;8, 2&#x29;&#x29;&#xd;&#xa;            .concat&#x28;d.substr&#x28;11, 2&#x29;&#x29;&#xd;&#xa;            .concat&#x28;d.substr&#x28;14, 2&#x29;&#x29;&#xd;&#xa;            .concat&#x28;d.substr&#x28;17, 2&#x29;&#x29;&#x3b;&#xd;&#xa;&#x7d;&#xd;&#xa;&#xd;&#xa;&#xd;&#xa;dt_modified &#x3d; reformat_date&#x28;date_modified&#x29;&#x3b;&#xd;&#xa;dt_updated  &#x3d; reformat_date&#x28;date_updated&#x29;&#x3b;&#xd;&#xa;&#xd;&#xa;</jsScript_script>
       </jsScript>    </jsScripts>    <fields>      <field>        <name>dt_modified</name>
         <rename>date_modified</rename>
         <type>String</type>
@@ -654,1143 +618,8 @@
       </output>
     </remotesteps>
     <GUI>
-      <xloc>192</xloc>
+      <xloc>288</xloc>
       <yloc>256</yloc>
-      <draw>Y</draw>
-    </GUI>
-    </step>
-
-  <step>
-    <name>debug_01_select_values</name>
-    <type>TextFileOutput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <separator>&#x3b;</separator>
-    <enclosure>&#x22;</enclosure>
-    <enclosure_forced>N</enclosure_forced>
-    <enclosure_fix_disabled>N</enclosure_fix_disabled>
-    <header>Y</header>
-    <footer>N</footer>
-    <format>DOS</format>
-    <compression>None</compression>
-    <encoding>windows-1252</encoding>
-    <endedLine/>
-    <fileNameInField>N</fileNameInField>
-    <fileNameField/>
-    <create_parent_folder>Y</create_parent_folder>
-    <file>
-      <name>&#x24;&#x7b;dir_done_default&#x7d;debug_</name>
-      <is_command>N</is_command>
-      <servlet_output>N</servlet_output>
-      <do_not_open_new_file_init>N</do_not_open_new_file_init>
-      <extention>txt</extention>
-      <append>N</append>
-      <split>N</split>
-      <haspartno>N</haspartno>
-      <add_date>Y</add_date>
-      <add_time>Y</add_time>
-      <SpecifyFormat>N</SpecifyFormat>
-      <date_time_format/>
-      <add_to_result_filenames>Y</add_to_result_filenames>
-      <pad>N</pad>
-      <fast_dump>N</fast_dump>
-      <splitevery>0</splitevery>
-    </file>
-    <fields>
-      <field>
-        <name>acct_id</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>legacy_id</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>acct_name</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>accountnumber</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>dba_name</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>date_agreement_signed</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>sic</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>owner_name</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>owner_firstname</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>owner_lastname</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>bluefin_contract_start_date</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>industry</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>segment</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>parent_acct_id</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>hold_billing</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>stop_billing</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>billing_situation</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>billing_frequency</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>date_modified</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>date_updated</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>closure_date</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>acct_id_1</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>ach_credit_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>ach_monthly_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>ach_noc_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>ach_per_gw_trans_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>ach_return_error_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>ach_transaction_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>bfach_discount_rate</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>bluefin_gateway_discount_rate</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>file_transfer_monthly_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>gateway_monthly_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>group_tag_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>gw_per_auth_decline_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>gw_per_credit_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>gw_per_refund_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>gw_per_sale_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>gw_per_token_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>gw_reissued_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>misc_monthly_fees</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>one_time_key_injection_fees</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>p2pe_device_activated</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>p2pe_device_activating_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>p2pe_device_stored_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>p2pe_encryption_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>p2pe_monthly_flat_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>p2pe_tokenization_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>p2pe_transaction_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>pci_compliance_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>pci_non_compliance_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>pci_scans_monthly_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>per_transaction_fee</name>
-        <type>Number</type>
-        <format>0.&#x23;&#x23;&#x23;&#x23;&#x23;</format>
-        <currency/>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>both</trim_type>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-    </fields>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>720</xloc>
-      <yloc>400</yloc>
-      <draw>Y</draw>
-    </GUI>
-    </step>
-
-  <step>
-    <name>denormalize_asset_rows</name>
-    <type>Denormaliser</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-      <key_field>name</key_field>
-      <group>
-        <field>
-          <name>accountid</name>
-          </field>
-        </group>
-      <fields>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>ACH Credit Fee</key_value>
-          <target_name>ach_credit_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>ACH Monthly Fee</key_value>
-          <target_name>ach_monthly_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>ACH NOC Fee</key_value>
-          <target_name>ach_noc_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>GW Per Trans Fee</key_value>
-          <target_name>ach_per_gw_trans_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>ACH Return&#x2f;Error Fee</key_value>
-          <target_name>ach_return_error_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>ACH Transaction Fee</key_value>
-          <target_name>ach_transaction_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>BF ACH Discount Rate</key_value>
-          <target_name>bfach_discount_rate</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>Apriva Monthly Fee</key_value>
-          <target_name>bluefin_gateway_discount_rate</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>File Transfer Monthly Fee</key_value>
-          <target_name>file_transfer_monthly_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>GW Monthly Fee</key_value>
-          <target_name>gateway_monthly_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>Group&#x2f;Tag Fee</key_value>
-          <target_name>group_tag_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>GW Auth Decline Fee</key_value>
-          <target_name>gw_per_auth_decline_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>GW Credit Fee</key_value>
-          <target_name>gw_per_credit_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>GW Refund Fee</key_value>
-          <target_name>gw_per_refund_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>GW Tran Fee</key_value>
-          <target_name>gw_per_sale_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>GW Token Fee</key_value>
-          <target_name>gw_per_token_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>GW Reissued Fee</key_value>
-          <target_name>gw_reissued_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>Misc Monthly Fee&#x28;s&#x29;</key_value>
-          <target_name>misc_monthly_fees</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>P2PE Flat Monthly Fee</key_value>
-          <target_name>one_time_key_injection_fees</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>P2PE Device Activated Fee</key_value>
-          <target_name>p2pe_device_activated_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>P2PE Device Activating Fee</key_value>
-          <target_name>p2pe_device_activating_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>P2PE Device Stored Fee</key_value>
-          <target_name>p2pe_device_stored_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>P2PE Encryption Fee</key_value>
-          <target_name>p2pe_encryption_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>P2PE Token Flat Monthly Fee</key_value>
-          <target_name>p2pe_monthly_flat_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>P2PE Token Fee</key_value>
-          <target_name>p2pe_tokenization_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>PC Account Updated Monthly Fee</key_value>
-          <target_name>pc_acct_updated_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>PCI Compliance Fee</key_value>
-          <target_name>pci_compliance_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>PCI Non-Compliance Fee</key_value>
-          <target_name>pci_non_compliance_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>PCI Transaction Fee</key_value>
-          <target_name>pci_scans_monthly_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        <field>
-          <field_name>fee_amount__c</field_name>
-          <key_value>GW Auth Fee</key_value>
-          <target_name>per_transaction_fee</target_name>
-          <target_type>Number</target_type>
-          <target_format/>
-          <target_length>12</target_length>
-          <target_precision>4</target_precision>
-          <target_decimal_symbol/>
-          <target_grouping_symbol/>
-          <target_currency_symbol/>
-          <target_null_string/>
-          <target_aggregation_type>-</target_aggregation_type>
-          </field>
-        </fields>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>416</xloc>
-      <yloc>576</yloc>
       <draw>Y</draw>
     </GUI>
     </step>
@@ -1807,7 +636,7 @@
       <schema_name/>
     </partitioning>
     <connection>LOCALHOST &#x2f; Sales Force</connection>
-    <sql> SELECT  &#xd;&#xa;     acct.Id                             AS acct_id&#xd;&#xa;    ,acct.Legacy_ID__c                   AS legacy_id&#xd;&#xa;    ,acct.Name                           AS acct_name&#xd;&#xa;    ,acct.AccountNumber                  AS accountnumber&#xd;&#xa;    ,acct.DBA_Name__c                    AS dba_name&#xd;&#xa;    ,cont.contract_start_date__c         AS date_agreement_signed&#xd;&#xa;    ,acct.Sic                            AS sic&#xd;&#xa;    ,user.Name                           AS owner_name&#xd;&#xa;    ,user.FirstName                      AS owner_firstname&#xd;&#xa;    ,user.LastName                       AS owner_lastname&#xd;&#xa;    ,cont.contract_start_date__c         AS bluefin_contract_start_date&#xd;&#xa;    ,acct.Industry                       AS industry&#xd;&#xa;    ,acct.revenue_segment__c             AS segment&#xd;&#xa;    ,acct.ParentId                       AS parent_acct_id&#xd;&#xa;    ,cont.Hold_Billing__c                AS hold_billing&#xd;&#xa;    ,cont.Billing_Hold_Release_Date__c   AS stop_billing&#xd;&#xa;    ,cont.Billing_Preference__c          AS billing_situation&#xd;&#xa;    ,cont.Billing_Frequency__c           AS billing_frequency&#xd;&#xa;    ,acct.LastModifiedDate               AS date_modified&#xd;&#xa;    ,acct.CreatedDate                    AS date_updated &#xd;&#xa;  FROM account                           AS acct    &#xd;&#xa;  JOIN sales_contract__c                 AS cont&#xd;&#xa;    ON acct.Id &#x3d; cont.AccountId__c &#xd;&#xa;  JOIN &#x60;user&#x60;                            AS &#x60;user&#x60;&#xd;&#xa;    ON acct.OwnerId &#x3d; user.Id  &#xd;&#xa; -- WHERE acct.Id &#x3d; &#x27;0013i00000Cg8YJAAZ&#x27;&#xd;&#xa;&#x3b;&#xd;&#xa;</sql>
+    <sql>SELECT  &#xd;&#xa;    acct.Id                             AS acct_id&#xd;&#xa;   ,acct.Legacy_ID__c                   AS legacy_id&#xd;&#xa;   ,acct.Name                           AS acct_name&#xd;&#xa;   ,acct.AccountNumber                  AS accountnumber&#xd;&#xa;   ,acct.DBA_Name__c                    AS dba_name&#xd;&#xa;   ,acct.billingstreet                  AS dba_street&#xd;&#xa;   ,acct.billingcity                    AS dba_city&#xd;&#xa;   ,acct.billingstate                   AS dba_state&#xd;&#xa;   ,acct.billingpostalcode              AS dba_postal_code&#xd;&#xa;   ,acct.phone                          AS dba_phone&#xd;&#xa;   ,cont.contract_start_date__c         AS date_agreement_signed&#xd;&#xa;   ,acct.Sic                            AS sic&#xd;&#xa;   ,user.Name                           AS owner_name&#xd;&#xa;   ,user.FirstName                      AS owner_firstname&#xd;&#xa;   ,user.LastName                       AS owner_lastname&#xd;&#xa;   ,cont.contract_start_date__c         AS bluefin_contract_start_date&#xd;&#xa;   ,acct.Industry                       AS industry&#xd;&#xa;   ,acct.revenue_segment__c             AS segment&#xd;&#xa;   ,acct.ParentId                       AS parent_acct_id&#xd;&#xa;   ,CASE &#xd;&#xa;        WHEN cont.Hold_Billing__c &#x3d; 1 THEN &#x27;true&#x27;&#xd;&#xa;        WHEN cont.Hold_Billing__c &#x3d; 0 THEN &#x27;false&#x27;&#xd;&#xa;        ELSE NULL &#xd;&#xa;    END                                 AS hold_billing&#xd;&#xa;   ,cont.Billing_Hold_Release_Date__c   AS stop_billing&#xd;&#xa;   ,cont.Billing_Preference__c          AS billing_situation&#xd;&#xa;   ,cont.Billing_Frequency__c           AS billing_frequency&#xd;&#xa;   ,acct.LastModifiedDate               AS date_modified&#xd;&#xa;   ,acct.CreatedDate                    AS date_updated &#xd;&#xa;   ,acct.months_in_business__c          AS months_in_business&#xd;&#xa;  FROM account                          AS acct    &#xd;&#xa;  LEFT JOIN sales_contract__c           AS cont&#xd;&#xa;    ON acct.Id &#x3d; cont.AccountId__c &#xd;&#xa;  JOIN &#x60;user&#x60;                           AS &#x60;user&#x60;&#xd;&#xa;    ON acct.OwnerId &#x3d; user.Id  &#xd;&#xa; -- WHERE acct.Id &#x3d; &#x27;0013i00000EmHuvAAF&#x27; &#xd;&#xa;&#x3b;</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
@@ -1828,38 +657,6 @@
     </step>
 
   <step>
-    <name>get_asset_data</name>
-    <type>TableInput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>LOCALHOST &#x2f; Sales Force</connection>
-    <sql>SELECT &#xd;&#xa;     asst.accountid&#xd;&#xa;    ,asst.name &#xd;&#xa;    ,fm.fee&#xd;&#xa;    ,asst.fee_amount__c&#xd;&#xa;  FROM asset          AS asst&#xd;&#xa;  LEFT JOIN fee_map   AS fm&#xd;&#xa;    ON asst.name &#x3d; fm.name&#xd;&#xa;-- WHERE asst.accountid &#x3d; &#x27;0013i00000Cg8RaAAJ&#x27;&#xd;&#xa; ORDER BY asst.accountid, 2&#xd;&#xa; &#x3b;</sql>
-    <limit>0</limit>
-    <lookup/>
-    <execute_each_row>N</execute_each_row>
-    <variables_active>N</variables_active>
-    <lazy_conversion_active>N</lazy_conversion_active>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>288</xloc>
-      <yloc>576</yloc>
-      <draw>Y</draw>
-    </GUI>
-    </step>
-
-  <step>
     <name>get_asset_data_02</name>
     <type>TableInput</type>
     <description/>
@@ -1871,7 +668,7 @@
       <schema_name/>
     </partitioning>
     <connection>LOCALHOST &#x2f; Sales Force</connection>
-    <sql>SELECT &#xd;&#xa;     asst.accountid AS acct_id&#xd;&#xa;    ,asst.name&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;ach_credit_fee&#x27;&#x29;                AS ach_credit_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;ach_monthly_fee&#x27;&#x29;               AS ach_monthly_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;ach_noc_fee&#x27;&#x29;                   AS ach_noc_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;ach_per_gw_trans_fee&#x27;&#x29;          AS ach_per_gw_trans_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;ach_return_error_fee&#x27;&#x29;          AS ach_return_error_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;ach_transaction_fee&#x27;&#x29;           AS ach_transaction_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;bfach_discount_rate&#x27;&#x29;           AS bfach_discount_rate&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;bluefin_gateway_discount_rate&#x27;&#x29; AS bluefin_gateway_discount_rate&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;file_transfer_monthly_fee&#x27;&#x29;     AS file_transfer_monthly_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;gateway_monthly_fee&#x27;&#x29;           AS gateway_monthly_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;group_tag_fee&#x27;&#x29;                 AS group_tag_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;gw_per_auth_decline_fee&#x27;&#x29;       AS gw_per_auth_decline_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;gw_per_credit_fee&#x27;&#x29;             AS gw_per_credit_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;gw_per_refund_fee&#x27;&#x29;             AS gw_per_refund_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;gw_per_sale_fee&#x27;&#x29;               AS gw_per_sale_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;gw_per_token_fee&#x27;&#x29;              AS gw_per_token_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;gw_reissued_fee&#x27;&#x29;               AS gw_reissued_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;misc_monthly_fees&#x27;&#x29;             AS misc_monthly_fees&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;one_time_key_injection_fees&#x27;&#x29;   AS one_time_key_injection_fees&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;p2pe_device_activated&#x27;&#x29;         AS p2pe_device_activated&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;p2pe_device_activating_fee&#x27;&#x29;    AS p2pe_device_activating_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;p2pe_device_stored_fee&#x27;&#x29;        AS p2pe_device_stored_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;p2pe_encryption_fee&#x27;&#x29;           AS p2pe_encryption_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;p2pe_monthly_flat_fee&#x27;&#x29;         AS p2pe_monthly_flat_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;p2pe_tokenization_fee&#x27;&#x29;         AS p2pe_tokenization_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;p2pe_transaction_fee&#x27;&#x29;          AS p2pe_transaction_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;pci_compliance_fee&#x27;&#x29;            AS pci_compliance_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;pci_non_compliance_fee&#x27;&#x29;        AS pci_non_compliance_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;pci_scans_monthly_fee&#x27;&#x29;         AS pci_scans_monthly_fee&#xd;&#xa;,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;per_transaction_fee&#x27;&#x29;           AS per_transaction_fee&#xd;&#xa;  FROM asset          AS asst&#xd;&#xa;  LEFT JOIN fee_map   AS fm&#xd;&#xa;    ON asst.name &#x3d; fm.name&#xd;&#xa; ORDER BY accountid&#xd;&#xa;&#x3b;&#xd;&#xa;</sql>
+    <sql>SELECT &#xd;&#xa;     asst.accountid AS acct_id&#xd;&#xa;    ,asst.fee_name__c&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;ach_credit_fee&#x27;&#x29;                AS ach_credit_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;ach_monthly_fee&#x27;&#x29;               AS ach_monthly_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;ach_noc_fee&#x27;&#x29;                   AS ach_noc_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;ach_per_gw_trans_fee&#x27;&#x29;          AS ach_per_gw_trans_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;ach_return_error_fee&#x27;&#x29;          AS ach_return_error_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;ach_transaction_fee&#x27;&#x29;           AS ach_transaction_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;bfach_discount_rate&#x27;&#x29;           AS bfach_discount_rate&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;bluefin_gateway_discount_rate&#x27;&#x29; AS bluefin_gateway_discount_rate&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;file_transfer_monthly_fee&#x27;&#x29;     AS file_transfer_monthly_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;gateway_monthly_fee&#x27;&#x29;           AS gateway_monthly_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;group_tag_fee&#x27;&#x29;                 AS group_tag_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;gw_per_auth_decline_fee&#x27;&#x29;       AS gw_per_auth_decline_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;gw_per_credit_fee&#x27;&#x29;             AS gw_per_credit_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;gw_per_refund_fee&#x27;&#x29;             AS gw_per_refund_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;gw_per_sale_fee&#x27;&#x29;               AS gw_per_sale_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;gw_per_token_fee&#x27;&#x29;              AS gw_per_token_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;gw_reissued_fee&#x27;&#x29;               AS gw_reissued_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;misc_monthly_fees&#x27;&#x29;             AS misc_monthly_fees&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;one_time_key_injection_fees&#x27;&#x29;   AS one_time_key_injection_fees&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;p2pe_device_activated&#x27;&#x29;         AS p2pe_device_activated&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;p2pe_device_activating_fee&#x27;&#x29;    AS p2pe_device_activating_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;p2pe_device_stored_fee&#x27;&#x29;        AS p2pe_device_stored_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;p2pe_encryption_fee&#x27;&#x29;           AS p2pe_encryption_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;p2pe_monthly_flat_fee&#x27;&#x29;         AS p2pe_monthly_flat_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;p2pe_tokenization_fee&#x27;&#x29;         AS p2pe_tokenization_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;p2pe_transaction_fee&#x27;&#x29;          AS p2pe_transaction_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;pci_compliance_fee&#x27;&#x29;            AS pci_compliance_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;pci_non_compliance_fee&#x27;&#x29;        AS pci_non_compliance_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;pci_scans_monthly_fee&#x27;&#x29;         AS pci_scans_monthly_fee&#xd;&#xa;    ,COALESCE&#x28;fee_amount__c, 0&#x29; &#x2a; &#x28;fee&#x3d;&#x27;per_transaction_fee&#x27;&#x29;           AS per_transaction_fee&#xd;&#xa;  FROM asset          AS asst&#xd;&#xa;  LEFT JOIN fee_map   AS fm&#xd;&#xa;    ON asst.fee_name__c &#x3d; fm.fee_name&#xd;&#xa; ORDER BY accountid&#xd;&#xa;&#x3b;</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
@@ -2175,6 +972,716 @@
     <return_field/>
     <fields>
         <field>
+          <column_name>accountnumber</column_name>
+          <stream_name>accountnumber</stream_name>
+        </field>
+        <field>
+          <column_name>acct_id</column_name>
+          <stream_name>acct_id</stream_name>
+        </field>
+        <field>
+          <column_name>acct_name</column_name>
+          <stream_name>acct_name</stream_name>
+        </field>
+        <field>
+          <column_name>ach_credit_fee</column_name>
+          <stream_name>ach_credit_fee</stream_name>
+        </field>
+        <field>
+          <column_name>ach_monthly_fee</column_name>
+          <stream_name>ach_monthly_fee</stream_name>
+        </field>
+        <field>
+          <column_name>ach_noc_fee</column_name>
+          <stream_name>ach_noc_fee</stream_name>
+        </field>
+        <field>
+          <column_name>ach_per_gw_trans_fee</column_name>
+          <stream_name>ach_per_gw_trans_fee</stream_name>
+        </field>
+        <field>
+          <column_name>ach_return_error_fee</column_name>
+          <stream_name>ach_return_error_fee</stream_name>
+        </field>
+        <field>
+          <column_name>ach_transaction_fee</column_name>
+          <stream_name>ach_transaction_fee</stream_name>
+        </field>
+        <field>
+          <column_name>bfach_discount_rate</column_name>
+          <stream_name>bfach_discount_rate</stream_name>
+        </field>
+        <field>
+          <column_name>billing_frequency</column_name>
+          <stream_name>billing_frequency</stream_name>
+        </field>
+        <field>
+          <column_name>billing_situation</column_name>
+          <stream_name>billing_situation</stream_name>
+        </field>
+        <field>
+          <column_name>bluefin_contract_start_date</column_name>
+          <stream_name>bluefin_contract_start_date</stream_name>
+        </field>
+        <field>
+          <column_name>bluefin_gateway_discount_rate</column_name>
+          <stream_name>bluefin_gateway_discount_rate</stream_name>
+        </field>
+        <field>
+          <column_name>closure_date</column_name>
+          <stream_name>closure_date</stream_name>
+        </field>
+        <field>
+          <column_name>date_agreement_signed</column_name>
+          <stream_name>date_agreement_signed</stream_name>
+        </field>
+        <field>
+          <column_name>date_modified</column_name>
+          <stream_name>date_modified</stream_name>
+        </field>
+        <field>
+          <column_name>date_updated</column_name>
+          <stream_name>date_updated</stream_name>
+        </field>
+        <field>
+          <column_name>dba_name</column_name>
+          <stream_name>dba_name</stream_name>
+        </field>
+        <field>
+          <column_name>dba_street</column_name>
+          <stream_name>dba_street</stream_name>
+        </field>
+        <field>
+          <column_name>dba_city</column_name>
+          <stream_name>dba_city</stream_name>
+        </field>
+        <field>
+          <column_name>dba_state</column_name>
+          <stream_name>dba_state</stream_name>
+        </field>
+        <field>
+          <column_name>dba_postal_code</column_name>
+          <stream_name>dba_postal_code</stream_name>
+        </field>
+        <field>
+          <column_name>dba_phone</column_name>
+          <stream_name>dba_phone</stream_name>
+        </field>
+        <field>
+          <column_name>file_transfer_monthly_fee</column_name>
+          <stream_name>file_transfer_monthly_fee</stream_name>
+        </field>
+        <field>
+          <column_name>gateway_monthly_fee</column_name>
+          <stream_name>gateway_monthly_fee</stream_name>
+        </field>
+        <field>
+          <column_name>group_tag_fee</column_name>
+          <stream_name>group_tag_fee</stream_name>
+        </field>
+        <field>
+          <column_name>gw_per_auth_decline_fee</column_name>
+          <stream_name>gw_per_auth_decline_fee</stream_name>
+        </field>
+        <field>
+          <column_name>gw_per_credit_fee</column_name>
+          <stream_name>gw_per_credit_fee</stream_name>
+        </field>
+        <field>
+          <column_name>gw_per_refund_fee</column_name>
+          <stream_name>gw_per_refund_fee</stream_name>
+        </field>
+        <field>
+          <column_name>gw_per_sale_fee</column_name>
+          <stream_name>gw_per_sale_fee</stream_name>
+        </field>
+        <field>
+          <column_name>gw_per_token_fee</column_name>
+          <stream_name>gw_per_token_fee</stream_name>
+        </field>
+        <field>
+          <column_name>gw_reissued_fee</column_name>
+          <stream_name>gw_reissued_fee</stream_name>
+        </field>
+        <field>
+          <column_name>hold_billing</column_name>
+          <stream_name>hold_billing</stream_name>
+        </field>
+        <field>
+          <column_name>industry</column_name>
+          <stream_name>industry</stream_name>
+        </field>
+        <field>
+          <column_name>legacy_id</column_name>
+          <stream_name>legacy_id</stream_name>
+        </field>
+        <field>
+          <column_name>misc_monthly_fees</column_name>
+          <stream_name>misc_monthly_fees</stream_name>
+        </field>
+        <field>
+          <column_name>months_in_business</column_name>
+          <stream_name>months_in_business</stream_name>
+        </field>
+        <field>
+          <column_name>one_time_key_injection_fees</column_name>
+          <stream_name>one_time_key_injection_fees</stream_name>
+        </field>
+        <field>
+          <column_name>owner_firstname</column_name>
+          <stream_name>owner_firstname</stream_name>
+        </field>
+        <field>
+          <column_name>owner_lastname</column_name>
+          <stream_name>owner_lastname</stream_name>
+        </field>
+        <field>
+          <column_name>owner_name</column_name>
+          <stream_name>owner_name</stream_name>
+        </field>
+        <field>
+          <column_name>p2pe_device_activated</column_name>
+          <stream_name>p2pe_device_activated</stream_name>
+        </field>
+        <field>
+          <column_name>p2pe_device_activating_fee</column_name>
+          <stream_name>p2pe_device_activating_fee</stream_name>
+        </field>
+        <field>
+          <column_name>p2pe_device_stored_fee</column_name>
+          <stream_name>p2pe_device_stored_fee</stream_name>
+        </field>
+        <field>
+          <column_name>p2pe_encryption_fee</column_name>
+          <stream_name>p2pe_encryption_fee</stream_name>
+        </field>
+        <field>
+          <column_name>p2pe_monthly_flat_fee</column_name>
+          <stream_name>p2pe_monthly_flat_fee</stream_name>
+        </field>
+        <field>
+          <column_name>p2pe_tokenization_fee</column_name>
+          <stream_name>p2pe_tokenization_fee</stream_name>
+        </field>
+        <field>
+          <column_name>p2pe_transaction_fee</column_name>
+          <stream_name>p2pe_transaction_fee</stream_name>
+        </field>
+        <field>
+          <column_name>parent_acct_id</column_name>
+          <stream_name>parent_acct_id</stream_name>
+        </field>
+        <field>
+          <column_name>pci_compliance_fee</column_name>
+          <stream_name>pci_compliance_fee</stream_name>
+        </field>
+        <field>
+          <column_name>pci_non_compliance_fee</column_name>
+          <stream_name>pci_non_compliance_fee</stream_name>
+        </field>
+        <field>
+          <column_name>pci_scans_monthly_fee</column_name>
+          <stream_name>pci_scans_monthly_fee</stream_name>
+        </field>
+        <field>
+          <column_name>per_transaction_fee</column_name>
+          <stream_name>per_transaction_fee</stream_name>
+        </field>
+        <field>
+          <column_name>segment</column_name>
+          <stream_name>segment</stream_name>
+        </field>
+        <field>
+          <column_name>sic</column_name>
+          <stream_name>sic</stream_name>
+        </field>
+        <field>
+          <column_name>stop_billing</column_name>
+          <stream_name>stop_billing</stream_name>
+        </field>
+    </fields>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>1024</xloc>
+      <yloc>256</yloc>
+      <draw>Y</draw>
+    </GUI>
+    </step>
+
+  <step>
+    <name>select_values</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>      <field>        <name>accountnumber</name>
+        <rename/>
+      </field>      <field>        <name>acct_id</name>
+        <rename/>
+      </field>      <field>        <name>acct_name</name>
+        <rename/>
+      </field>      <field>        <name>ach_credit_fee</name>
+        <rename/>
+      </field>      <field>        <name>ach_monthly_fee</name>
+        <rename/>
+      </field>      <field>        <name>ach_noc_fee</name>
+        <rename/>
+      </field>      <field>        <name>ach_per_gw_trans_fee</name>
+        <rename/>
+      </field>      <field>        <name>ach_return_error_fee</name>
+        <rename/>
+      </field>      <field>        <name>ach_transaction_fee</name>
+        <rename/>
+      </field>      <field>        <name>bfach_discount_rate</name>
+        <rename/>
+      </field>      <field>        <name>billing_frequency</name>
+        <rename/>
+      </field>      <field>        <name>billing_situation</name>
+        <rename/>
+      </field>      <field>        <name>bluefin_contract_start_date</name>
+        <rename/>
+      </field>      <field>        <name>bluefin_gateway_discount_rate</name>
+        <rename/>
+      </field>      <field>        <name>closure_date</name>
+        <rename/>
+      </field>      <field>        <name>date_agreement_signed</name>
+        <rename/>
+      </field>      <field>        <name>date_modified</name>
+        <rename/>
+      </field>      <field>        <name>date_updated</name>
+        <rename/>
+      </field>      <field>        <name>dba_name</name>
+        <rename/>
+      </field>      <field>        <name>dba_street</name>
+        <rename/>
+      </field>      <field>        <name>dba_city</name>
+        <rename/>
+      </field>      <field>        <name>dba_state</name>
+        <rename/>
+      </field>      <field>        <name>dba_postal_code</name>
+        <rename/>
+      </field>      <field>        <name>dba_phone</name>
+        <rename/>
+      </field>      <field>        <name>file_transfer_monthly_fee</name>
+        <rename/>
+      </field>      <field>        <name>gateway_monthly_fee</name>
+        <rename/>
+      </field>      <field>        <name>group_tag_fee</name>
+        <rename/>
+      </field>      <field>        <name>gw_per_auth_decline_fee</name>
+        <rename/>
+      </field>      <field>        <name>gw_per_credit_fee</name>
+        <rename/>
+      </field>      <field>        <name>gw_per_refund_fee</name>
+        <rename/>
+      </field>      <field>        <name>gw_per_sale_fee</name>
+        <rename/>
+      </field>      <field>        <name>gw_per_token_fee</name>
+        <rename/>
+      </field>      <field>        <name>gw_reissued_fee</name>
+        <rename/>
+      </field>      <field>        <name>hold_billing</name>
+        <rename/>
+      </field>      <field>        <name>industry</name>
+        <rename/>
+      </field>      <field>        <name>legacy_id</name>
+        <rename/>
+      </field>      <field>        <name>misc_monthly_fees</name>
+        <rename/>
+      </field>      <field>        <name>months_in_business</name>
+        <rename/>
+      </field>      <field>        <name>one_time_key_injection_fees</name>
+        <rename/>
+      </field>      <field>        <name>owner_firstname</name>
+        <rename/>
+      </field>      <field>        <name>owner_lastname</name>
+        <rename/>
+      </field>      <field>        <name>owner_name</name>
+        <rename/>
+      </field>      <field>        <name>p2pe_device_activated</name>
+        <rename/>
+      </field>      <field>        <name>p2pe_device_activating_fee</name>
+        <rename/>
+      </field>      <field>        <name>p2pe_device_stored_fee</name>
+        <rename/>
+      </field>      <field>        <name>p2pe_encryption_fee</name>
+        <rename/>
+      </field>      <field>        <name>p2pe_monthly_flat_fee</name>
+        <rename/>
+      </field>      <field>        <name>p2pe_tokenization_fee</name>
+        <rename/>
+      </field>      <field>        <name>p2pe_transaction_fee</name>
+        <rename/>
+      </field>      <field>        <name>parent_acct_id</name>
+        <rename/>
+      </field>      <field>        <name>pci_compliance_fee</name>
+        <rename/>
+      </field>      <field>        <name>pci_non_compliance_fee</name>
+        <rename/>
+      </field>      <field>        <name>pci_scans_monthly_fee</name>
+        <rename/>
+      </field>      <field>        <name>per_transaction_fee</name>
+        <rename/>
+      </field>      <field>        <name>segment</name>
+        <rename/>
+      </field>      <field>        <name>sic</name>
+        <rename/>
+      </field>      <field>        <name>stop_billing</name>
+        <rename/>
+      </field>        <select_unspecified>N</select_unspecified>
+    </fields>    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>720</xloc>
+      <yloc>256</yloc>
+      <draw>Y</draw>
+    </GUI>
+    </step>
+
+  <step>
+    <name>set_null_fees_to_zero</name>
+    <type>IfNull</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+      <replaceAllByValue/>
+      <replaceAllMask/>
+      <selectFields>Y</selectFields>
+      <selectValuesType>N</selectValuesType>
+      <setEmptyStringAll>N</setEmptyStringAll>
+    <valuetypes>
+      </valuetypes>
+    <fields>
+      <field>
+        <name>ach_credit_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>ach_monthly_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>ach_noc_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>ach_per_gw_trans_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>ach_return_error_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>ach_transaction_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>bfach_discount_rate</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>bluefin_gateway_discount_rate</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>file_transfer_monthly_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>gateway_monthly_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>group_tag_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>gw_per_auth_decline_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>gw_per_credit_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>gw_per_refund_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>gw_per_sale_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>gw_per_token_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>gw_reissued_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>misc_monthly_fees</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>one_time_key_injection_fees</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>p2pe_device_activated</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>p2pe_device_activating_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>p2pe_device_stored_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>p2pe_encryption_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>p2pe_monthly_flat_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>p2pe_tokenization_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>p2pe_transaction_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>pci_compliance_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>pci_non_compliance_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>pci_scans_monthly_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      <field>
+        <name>per_transaction_fee</name>
+        <value>0</value>
+        <mask/>
+        <set_empty_string>N</set_empty_string>
+        </field>
+      </fields>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>848</xloc>
+      <yloc>256</yloc>
+      <draw>Y</draw>
+    </GUI>
+    </step>
+
+  <step>
+    <name>sort_account_data</name>
+    <type>SortRows</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+      <directory>&#x25;&#x25;java.io.tmpdir&#x25;&#x25;</directory>
+      <prefix>out</prefix>
+      <sort_size>1000000</sort_size>
+      <free_memory/>
+      <compress>N</compress>
+      <compress_variable/>
+      <unique_rows>N</unique_rows>
+    <fields>
+      <field>
+        <name>acct_id</name>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <presorted>N</presorted>
+      </field>
+    </fields>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>416</xloc>
+      <yloc>256</yloc>
+      <draw>Y</draw>
+    </GUI>
+    </step>
+
+  <step>
+    <name>sort_asset_data</name>
+    <type>SortRows</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+      <directory>&#x25;&#x25;java.io.tmpdir&#x25;&#x25;</directory>
+      <prefix>out</prefix>
+      <sort_size>1000000</sort_size>
+      <free_memory/>
+      <compress>N</compress>
+      <compress_variable/>
+      <unique_rows>N</unique_rows>
+    <fields>
+      <field>
+        <name>acct_id</name>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <presorted>N</presorted>
+      </field>
+    </fields>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>576</xloc>
+      <yloc>368</yloc>
+      <draw>Y</draw>
+    </GUI>
+    </step>
+
+  <step>
+    <name>populate_test_cardconex_account 2</name>
+    <type>TableOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>LOCALHOST &#x2f; Sales Force</connection>
+    <schema>&#x24;&#x7b;dest_schema&#x7d;</schema>
+    <table>&#x24;&#x7b;dest_table&#x7d;</table>
+    <commit>1000</commit>
+    <truncate>Y</truncate>
+    <ignore_errors>N</ignore_errors>
+    <use_batch>Y</use_batch>
+    <specify_fields>Y</specify_fields>
+    <partitioning_enabled>N</partitioning_enabled>
+    <partitioning_field/>
+    <partitioning_daily>N</partitioning_daily>
+    <partitioning_monthly>Y</partitioning_monthly>
+    <tablename_in_field>N</tablename_in_field>
+    <tablename_field/>
+    <tablename_in_table>Y</tablename_in_table>
+    <return_keys>N</return_keys>
+    <return_field/>
+    <fields>
+        <field>
           <column_name>acct_id</column_name>
           <stream_name>acct_id</stream_name>
         </field>
@@ -2331,6 +1838,10 @@
           <stream_name>misc_monthly_fees</stream_name>
         </field>
         <field>
+          <column_name>months_in_business</column_name>
+          <stream_name>months_in_business__c</stream_name>
+        </field>
+        <field>
           <column_name>one_time_key_injection_fees</column_name>
           <stream_name>one_time_key_injection_fees</stream_name>
         </field>
@@ -2383,390 +1894,8 @@
       </output>
     </remotesteps>
     <GUI>
-      <xloc>880</xloc>
-      <yloc>256</yloc>
-      <draw>Y</draw>
-    </GUI>
-    </step>
-
-  <step>
-    <name>replace_null_fees_with_zero</name>
-    <type>IfNull</type>
-    <description/>
-    <distribute>N</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-      <replaceAllByValue/>
-      <replaceAllMask/>
-      <selectFields>Y</selectFields>
-      <selectValuesType>N</selectValuesType>
-      <setEmptyStringAll>N</setEmptyStringAll>
-    <valuetypes>
-      <valuetype>
-        <name>Number</name>
-        <value>0</value>
-        <mask/>
-        <set_type_empty_string>N</set_type_empty_string>
-        </valuetype>
-      </valuetypes>
-    <fields>
-      <field>
-        <name>ach_credit_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>ach_monthly_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>ach_noc_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>ach_per_gw_trans_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>ach_return_error_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>ach_transaction_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>bfach_discount_rate</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>bluefin_gateway_discount_rate</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>file_transfer_monthly_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>gateway_monthly_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>group_tag_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>gw_per_auth_decline_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>gw_per_credit_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>gw_per_refund_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>gw_per_sale_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>gw_per_token_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>gw_reissued_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>misc_monthly_fees</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>one_time_key_injection_fees</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>p2pe_device_activated_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>p2pe_device_activating_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>p2pe_device_stored_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>p2pe_encryption_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>p2pe_monthly_flat_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>p2pe_tokenization_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>pc_acct_updated_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>pci_compliance_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>pci_non_compliance_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>pci_scans_monthly_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      <field>
-        <name>per_transaction_fee</name>
-        <value/>
-        <mask/>
-        <set_empty_string>N</set_empty_string>
-        </field>
-      </fields>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>576</xloc>
-      <yloc>576</yloc>
-      <draw>Y</draw>
-    </GUI>
-    </step>
-
-  <step>
-    <name>select_values</name>
-    <type>SelectValues</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <fields>      <field>        <name>acct_id</name>
-      </field>      <field>        <name>legacy_id</name>
-      </field>      <field>        <name>acct_name</name>
-      </field>      <field>        <name>accountnumber</name>
-      </field>      <field>        <name>dba_name</name>
-      </field>      <field>        <name>date_agreement_signed</name>
-      </field>      <field>        <name>sic</name>
-      </field>      <field>        <name>owner_name</name>
-      </field>      <field>        <name>owner_firstname</name>
-      </field>      <field>        <name>owner_lastname</name>
-      </field>      <field>        <name>bluefin_contract_start_date</name>
-      </field>      <field>        <name>industry</name>
-      </field>      <field>        <name>segment</name>
-      </field>      <field>        <name>parent_acct_id</name>
-      </field>      <field>        <name>hold_billing</name>
-      </field>      <field>        <name>stop_billing</name>
-      </field>      <field>        <name>billing_situation</name>
-      </field>      <field>        <name>billing_frequency</name>
-      </field>      <field>        <name>date_modified</name>
-      </field>      <field>        <name>date_updated</name>
-      </field>      <field>        <name>closure_date</name>
-      </field>      <field>        <name>acct_id_1</name>
-      </field>      <field>        <name>ach_credit_fee</name>
-      </field>      <field>        <name>ach_monthly_fee</name>
-      </field>      <field>        <name>ach_noc_fee</name>
-      </field>      <field>        <name>ach_per_gw_trans_fee</name>
-      </field>      <field>        <name>ach_return_error_fee</name>
-      </field>      <field>        <name>ach_transaction_fee</name>
-      </field>      <field>        <name>bfach_discount_rate</name>
-      </field>      <field>        <name>bluefin_gateway_discount_rate</name>
-      </field>      <field>        <name>file_transfer_monthly_fee</name>
-      </field>      <field>        <name>gateway_monthly_fee</name>
-      </field>      <field>        <name>group_tag_fee</name>
-      </field>      <field>        <name>gw_per_auth_decline_fee</name>
-      </field>      <field>        <name>gw_per_credit_fee</name>
-      </field>      <field>        <name>gw_per_refund_fee</name>
-      </field>      <field>        <name>gw_per_sale_fee</name>
-      </field>      <field>        <name>gw_per_token_fee</name>
-      </field>      <field>        <name>gw_reissued_fee</name>
-      </field>      <field>        <name>misc_monthly_fees</name>
-      </field>      <field>        <name>one_time_key_injection_fees</name>
-      </field>      <field>        <name>p2pe_device_activated</name>
-      </field>      <field>        <name>p2pe_device_activating_fee</name>
-      </field>      <field>        <name>p2pe_device_stored_fee</name>
-      </field>      <field>        <name>p2pe_encryption_fee</name>
-      </field>      <field>        <name>p2pe_monthly_flat_fee</name>
-      </field>      <field>        <name>p2pe_tokenization_fee</name>
-      </field>      <field>        <name>p2pe_transaction_fee</name>
-      </field>      <field>        <name>pci_compliance_fee</name>
-      </field>      <field>        <name>pci_non_compliance_fee</name>
-      </field>      <field>        <name>pci_scans_monthly_fee</name>
-      </field>      <field>        <name>per_transaction_fee</name>
-      </field>        <select_unspecified>N</select_unspecified>
-    </fields>    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>720</xloc>
-      <yloc>256</yloc>
-      <draw>Y</draw>
-    </GUI>
-    </step>
-
-  <step>
-    <name>sort_account_data</name>
-    <type>SortRows</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-      <directory>&#x25;&#x25;java.io.tmpdir&#x25;&#x25;</directory>
-      <prefix>out</prefix>
-      <sort_size>1000000</sort_size>
-      <free_memory/>
-      <compress>N</compress>
-      <compress_variable/>
-      <unique_rows>N</unique_rows>
-    <fields>
-      <field>
-        <name>acct_id</name>
-        <ascending>Y</ascending>
-        <case_sensitive>N</case_sensitive>
-        <collator_enabled>N</collator_enabled>
-        <collator_strength>0</collator_strength>
-        <presorted>N</presorted>
-      </field>
-    </fields>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>416</xloc>
-      <yloc>256</yloc>
-      <draw>Y</draw>
-    </GUI>
-    </step>
-
-  <step>
-    <name>sort_asset_data</name>
-    <type>SortRows</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-      <directory>&#x25;&#x25;java.io.tmpdir&#x25;&#x25;</directory>
-      <prefix>out</prefix>
-      <sort_size>1000000</sort_size>
-      <free_memory/>
-      <compress>N</compress>
-      <compress_variable/>
-      <unique_rows>N</unique_rows>
-    <fields>
-      <field>
-        <name>acct_id</name>
-        <ascending>Y</ascending>
-        <case_sensitive>N</case_sensitive>
-        <collator_enabled>N</collator_enabled>
-        <collator_strength>0</collator_strength>
-        <presorted>N</presorted>
-      </field>
-    </fields>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>576</xloc>
-      <yloc>368</yloc>
+      <xloc>1024</xloc>
+      <yloc>336</yloc>
       <draw>Y</draw>
     </GUI>
     </step>
