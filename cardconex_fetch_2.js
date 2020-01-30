@@ -60,44 +60,23 @@ var sfPassword = config.sf.password;
         console.log("next records URL : " + result.nextRecordsUrl);
         }
     }); */
-    
-
-    // var query = sfConnect.query(accountSelect)         
+           
     var query = sfConnect.query('SELECT Id, AccountNumber, Account_Status__c FROM Account')
-      .on("record", function(record) {
-        records.push(record);
-      })
-      .on("end", function() {
-        console.log("total in database : " + query.totalSize);
-        console.log("total fetched     : " + query.totalFetched);
-        console.log("records.length    : " + records.length); 
-        
-        // console.log('records = ' + records);
-        // console.log('Object.keys(records)      = ' + Object.keys(records));  no good
-        // console.log('Object.keys(records[0])   = ' + Object.keys(records[0]));  attributes,Id,AccountNumber,Account_Status__c
-        // console.log('Object.values(records)    = ' + Object.values(records));   [object Object],[object Object],
-        console.log('Object.values(records[0]) = ' + Object.values(records[0]));
-        console.log('records[0]                = ' + records[0]);
-        
-        var arrRows = []; 
-        
-        for (var i=0; i<5; i++){
-            var oneRow = Object.values(records[i]);
-            console.log(oneRow);
-            oneRow.shift();
-            console.log(oneRow);
-            // console.log('oneRow = ' + oneRow);
-            // console.log('oneRow.length = ' + oneRow.length);
-            arrRows.push(oneRow);
-        }
-        console.log('arrRows = ' + arrRows);
-        console.log('arrRows.length = ' + arrRows.length);
-        console.log('arrRows[0][0] = ' + arrRows[0][0]);
-        console.log('arrRows[0][0] = ' + arrRows[0][1]);
-        console.log('arrRows[0][0] = ' + arrRows[0][2]);
-        console.log('arrRows[1][0] = ' + arrRows[1][0]);
-        console.log('arrRows[1][0] = ' + arrRows[1][1]);
-        console.log('arrRows[1][0] = ' + arrRows[1][2]);
+        .on("record", function(record) {
+            records.push(record);
+        })
+        .on("end", function() { 
+            var arrRows = []; 
+            for (var i=0; i<5; i++){
+                var oneRow = Object.values(records[i]);  
+                /*
+                    sample oneRow value: [ { type: 'Account', url: '/services/data/v42.0/sobjects/Account/0013i00000FFCV8AAP' },
+                                           '0013i00000FFCV8AAP', ... ]
+                */
+                oneRow.shift();     /* delete the unwanted first element of oneRow.  shift() does this in-place */
+                // console.log(oneRow);
+                arrRows.push(oneRow);
+            }
         mySqlConnection.connect(function(err) {
             if (err){
                 console.log('Could not connect to MySQL.\n');
@@ -106,17 +85,14 @@ var sfPassword = config.sf.password;
                 console.log('Successfully connected to MySQL.\n');
                 mySqlConnection.query(sqlInsertAccount, [arrRows], function(err, result){
                     if(err){
-                        console.log(err);
+                        console.log('MySQL ERROR ' + err.errno + ': ' + err.code + '\n' + err.sqlMessage);
                     }
-                    
-                    console.log('record inserted.');
+                    console.log('MySQL Status:  ' + result.message.substr(1, 128) + '\r\n');
                 })
                 mySqlConnection.end(); 
             }
-        });
-        
-        
-      })
+            });
+        })
       .on("error", function(err) {
         console.error(err);
       })
