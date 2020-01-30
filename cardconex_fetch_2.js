@@ -29,38 +29,6 @@ var sfPassword = config.sf.password;
     
     var records = [];
     
-/*     sfConnect.query(accountAccount2, function(err, result) {
-        if (err) { return console.error(err); }
-
-        for(var i=0; i<result.records.length; i++){
-            console.log(result.records[i].Id);   
-
-        }
-        
-        console.log("total : " + result.totalSize);
-        console.log("fetched : " + result.records.length);
-    }); */
- 
-/*     sfConnect.describe('Account', function(err, meta){
-        if(err){
-            return console.error(err);
-        }
-        console.log('Label: ' + meta.label);
-        console.log('No. of Fields: ' + meta.fields.length);
-    }) */
-    
-/*     sfConnect.query(accountSelect, function(err, result) {
-        if (err) { return console.error(err); }
-        console.log("total : " + result.totalSize);
-        console.log("fetched : " + result.records.length);
-        console.log("done ? : " + result.done);
-        if (!result.done) {
-        // you can use the locator to fetch next records set.
-        // Connection#queryMore()
-        console.log("next records URL : " + result.nextRecordsUrl);
-        }
-    }); */
-           
     var query = sfConnect.query('SELECT Id, AccountNumber, Account_Status__c FROM Account')
         .on("record", function(record) {
             records.push(record);
@@ -97,6 +65,18 @@ var sfPassword = config.sf.password;
         console.error(err);
       })
       .run({ autoFetch : true, maxFetch : 4000 }); // synonym of Query#execute();
-      
  
 });
+
+
+/*   
+  
+sfConnect.describe('Account', function(err, meta){
+    if(err){
+        return console.error(err);
+    }
+    console.log('Label: ' + meta.label);
+    console.log('No. of Fields: ' + meta.fields.length);
+}) 
+    
+*/
