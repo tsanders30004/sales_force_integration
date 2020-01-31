@@ -206,6 +206,8 @@ const fnInsertRows=function(arrRecords, tableName){
 }
 
 /* main */
+
+console.log(process.argv);
 sfConnect.login(sfUserId, sfPassword, function(objLoginError, objLoginResponse){
 
     showHeader();

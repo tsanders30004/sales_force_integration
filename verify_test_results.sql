@@ -2,23 +2,19 @@
 
 USE sales_force;
 
-SELECT accountid, count(*) FROM asset GROUP BY 1 ORDER BY 1 DESC LIMIT 1;
+/*SELECT accountid, count(*) FROM asset GROUP BY 1 ORDER BY 1 DESC LIMIT 1;
 -- accountid         |count(*)|
 -- ------------------|--------|
 -- 0013i00000EmHuvAAF|      28| --- this is the account with all 28 fees populated.
 
 SET @acct_id = '0013i00000EmHuvAAF';
 SET @legacy_id = '0014P00001l9QNcQAM';
-SELECT @acct_id, @legacy_id;
+SELECT @acct_id, @legacy_id;*/
 
 DROP TABLE IF EXISTS tmp_legacy_ids;
-
-CREATE TEMPORARY TABLE tmp_legacy_ids SELECT DISTINCT legacy_id FROM test_cardconex_account;  -- must run cardconex_acct_
-
+CREATE TEMPORARY TABLE tmp_legacy_ids SELECT DISTINCT legacy_id FROM test_cardconex_account;  
 ALTER TABLE tmp_legacy_ids ADD INDEX(legacy_id);
-
 DROP TABLE IF EXISTS tmp_updated;
-
 CREATE TEMPORARY TABLE tmp_updated 
 SELECT 
     legacy_id,
@@ -90,7 +86,7 @@ SELECT
     sum(pci_compliance_fee) AS sum_pci_compliance_fee, 
     sum(pci_non_compliance_fee) AS sum_pci_non_compliance_fee
     FROM stg_cardconex_account 
-   WHERE acct_id IN (SELECT legacy_id FROM tmp_legacy_ids)
+   WHERE acct_id IN (SELECT legacy_id FROM tmp_legacy_ids)    -- only want the rows for which we have data in test_cardconex_account.
 GROUP BY 1
 ;
 ALTER TABLE tmp_original ADD INDEX(acct_id);
@@ -135,6 +131,8 @@ SELECT
     ON ids.legacy_id = o.acct_id
 ;  
 
+-- if there are no errors, every column below should be equal to zero
+-- non-zero rows indicate an error.
 SELECT 
     sum(delta_ach_credit_fee),
     sum(delta_bfach_discount_rate),
@@ -167,174 +165,202 @@ SELECT
     sum(delta_pci_non_compliance_fee)
 FROM test_results;
 
+-- need to identify the offending accounts; i.e., accounts for which there are errors.
+-- first - create a table that is broken out by acct_id
+DROP TABLE IF EXISTS tmp_r1;
+CREATE TEMPORARY TABLE tmp_r1
 SELECT 
-     acct_id
-    ,acct_name 
-    ,misc_monthly_fees
-  FROM stg_cardconex_account 
- WHERE acct_id = @legacy_id
+    o.acct_id AS legacy_id,
+    u.acct_id AS new_id,
+    abs(sum(o.ach_credit_fee)-sum(u.ach_credit_fee)) AS ach_credit_fee,
+    abs(sum(o.bfach_discount_rate)-sum(u.bfach_discount_rate)) AS bfach_discount_rate,
+    abs(sum(o.ach_monthly_fee)-sum(u.ach_monthly_fee)) AS ach_monthly_fee,
+    abs(sum(o.ach_noc_fee)-sum(u.ach_noc_fee)) AS ach_noc_fee,
+    abs(sum(o.ach_per_gw_trans_fee)-sum(u.ach_per_gw_trans_fee)) AS ach_per_gw_trans_fee,
+    abs(sum(o.ach_return_error_fee)-sum(u.ach_return_error_fee)) AS ach_return_error_fee,
+    abs(sum(o.ach_transaction_fee)-sum(u.ach_transaction_fee)) AS ach_transaction_fee,
+    abs(sum(o.bluefin_gateway_discount_rate)-sum(u.bluefin_gateway_discount_rate)) AS bluefin_gateway_discount_rate,
+    abs(sum(o.file_transfer_monthly_fee)-sum(u.file_transfer_monthly_fee)) AS file_transfer_monthly_fee,
+    abs(sum(o.gateway_monthly_fee)-sum(u.gateway_monthly_fee)) AS gateway_monthly_fee,
+    abs(sum(o.group_tag_fee)-sum(u.group_tag_fee)) AS group_tag_fee,
+    abs(sum(o.gw_per_auth_decline_fee)-sum(u.gw_per_auth_decline_fee)) AS gw_per_auth_decline_fee,
+    abs(sum(o.per_transaction_fee)-sum(u.per_transaction_fee)) AS per_transaction_fee,
+    abs(sum(o.gw_per_credit_fee)-sum(u.gw_per_credit_fee)) AS gw_per_credit_fee,
+    abs(sum(o.gw_per_refund_fee)-sum(u.gw_per_refund_fee)) AS gw_per_refund_fee,
+    abs(sum(o.gw_per_sale_fee)-sum(u.gw_per_sale_fee)) AS gw_per_sale_fee,
+    abs(sum(o.gw_per_token_fee)-sum(u.gw_per_token_fee)) AS gw_per_token_fee,
+    abs(sum(o.gw_reissued_fee)-sum(u.gw_reissued_fee)) AS gw_reissued_fee,
+    abs(sum(o.misc_monthly_fees)-sum(u.misc_monthly_fees)) AS misc_monthly_fees,
+    abs(sum(o.p2pe_device_activated)-sum(u.p2pe_device_activated)) AS p2pe_device_activated,
+    abs(sum(o.p2pe_device_activating_fee)-sum(u.p2pe_device_activating_fee)) AS p2pe_device_activating_fee,
+    abs(sum(o.p2pe_device_stored_fee)-sum(u.p2pe_device_stored_fee)) AS p2pe_device_stored_fee,
+    abs(sum(o.p2pe_encryption_fee)-sum(u.p2pe_encryption_fee)) AS p2pe_encryption_fee,
+    abs(sum(o.p2pe_monthly_flat_fee)-sum(u.p2pe_monthly_flat_fee)) AS p2pe_monthly_flat_fee,
+    abs(sum(o.one_time_key_injection_fees)-sum(u.one_time_key_injection_fees)) AS one_time_key_injection_fees,
+    abs(sum(o.p2pe_tokenization_fee)-sum(u.p2pe_tokenization_fee)) AS p2pe_tokenization_fee,
+    abs(sum(o.pci_scans_monthly_fee)-sum(u.pci_scans_monthly_fee)) AS pci_scans_monthly_fee
+  FROM      test_cardconex_account   u 
+  LEFT JOIN stg_cardconex_account    o 
+    ON u.legacy_id = o.acct_id
+ GROUP BY 1, 2;
+ 
+ -- identify suspect rows.  
+ -- to do this, delete from this table where all of the numeric columns are zero; these correspond to fees with no errors.
+  DELETE FROM tmp_r1 
+  WHERE 
+    ach_credit_fee = 0 AND 
+    bfach_discount_rate = 0 AND 
+    ach_monthly_fee = 0 AND 
+    ach_noc_fee = 0 AND 
+    ach_per_gw_trans_fee = 0 AND 
+    ach_return_error_fee = 0 AND 
+    ach_transaction_fee = 0 AND 
+    bluefin_gateway_discount_rate = 0 AND 
+    file_transfer_monthly_fee = 0 AND 
+    gateway_monthly_fee = 0 AND 
+    group_tag_fee = 0 AND 
+    gw_per_auth_decline_fee = 0 AND 
+    per_transaction_fee = 0 AND 
+    gw_per_credit_fee = 0 AND 
+    gw_per_refund_fee = 0 AND 
+    gw_per_sale_fee = 0 AND 
+    gw_per_token_fee = 0 AND 
+    gw_reissued_fee = 0 AND 
+    misc_monthly_fees = 0 AND 
+    p2pe_device_activated = 0 AND 
+    p2pe_device_activating_fee = 0 AND 
+    p2pe_device_stored_fee = 0 AND 
+    p2pe_encryption_fee = 0 AND 
+    p2pe_monthly_flat_fee = 0 AND 
+    one_time_key_injection_fees = 0 AND 
+    p2pe_tokenization_fee = 0 AND 
+    pci_scans_monthly_fee = 0
 ;
 
-SELECT 
-    *
+-- so these are the rows to check...
+-- the question is:  do there exist fees in asset for any of these accounts?
+
+SELECT *
   FROM asset 
- WHERE fee_name__c = 'Misc Monthly Fee(s)'
---  WHERE fee_amount__c IN (16, 24)
-;
+ WHERE accountid IN (SELECT new_id FROM tmp_r1);
+SELECT * FROM tmp_r1;
+-- no.  so fees for the accounts in question were not loaded into sales force.  -- the data is what is different; calcs appear ok.
 
+-- spot check...  pick a few accounts and look in sales force.
+
+SELECT *
+  FROM tmp_r1 
+;
+-- as expected, a spot check on three accounts showed that fees were not loaded.
+
+
+
+
+-- look in detail at the data for the account that has all 28 fees
+SET @new_acct_id = (SELECT accountid FROM asset GROUP BY 1 ORDER BY 1 DESC LIMIT 1);
+SET @legacy_id   = (SELECT legacy_id__c FROM account WHERE id = @new_acct_id);
+SELECT @acct_id, @legacy_id;
+
+-- @acct_id          |@legacy_id        |
+-- ------------------|------------------|
+-- 0013i00000EmHuvAAF|0014P00001l9QNcQAM|
+
+SELECT accountid, fee_name__c, fee_amount__c FROM asset WHERE accountid = @new_acct_id ORDER BY 3;
+-- accountid         |fee_name__c                   |fee_amount__c|
+-- ------------------|------------------------------|-------------|
+-- 0013i00000EmHuvAAF|P2PE Device Activated Fee     |       1.0000|
+-- 0013i00000EmHuvAAF|ACH Transaction Fee           |       2.0000|
+-- 0013i00000EmHuvAAF|P2PE Device Activating Fee    |       3.0000|
+-- 0013i00000EmHuvAAF|ACH GW Trans Fee              |       4.0000|
+-- 0013i00000EmHuvAAF|P2PE Device Stored Fee        |       5.0000|
+-- 0013i00000EmHuvAAF|ACH Credit Fee                |       6.0000|
+-- 0013i00000EmHuvAAF|P2PE Encryption Fee           |       7.0000|
+-- 0013i00000EmHuvAAF|ACH Discount Rate             |       8.0000|
+-- 0013i00000EmHuvAAF|P2PE Token Fee                |       9.0000|
+-- 0013i00000EmHuvAAF|ACH NOC Fee                   |      10.0000|
+-- 0013i00000EmHuvAAF|P2PE Monthly Flat Fee         |      11.0000|
+-- 0013i00000EmHuvAAF|ACH Return/Error Fee          |      12.0000|
+-- 0013i00000EmHuvAAF|P2PE Token Flat Monthly Fee   |      13.0000|
+-- 0013i00000EmHuvAAF|ACH Monthly Fee               |      14.0000|
+-- 0013i00000EmHuvAAF|GW Auth Fee                   |      15.0000|
+-- 0013i00000EmHuvAAF|Misc Monthly Fee(s)           |      16.0000|
+-- 0013i00000EmHuvAAF|GW Auth Decline Fee           |      17.0000|
+-- 0013i00000EmHuvAAF|Apriva Monthly Fee            |      18.0000|
+-- 0013i00000EmHuvAAF|GW Tran Fee                   |      19.0000|
+-- 0013i00000EmHuvAAF|File Transfer Monthly Fee     |      20.0000|
+-- 0013i00000EmHuvAAF|GW Credit Fee                 |      21.0000|
+-- 0013i00000EmHuvAAF|PCI Transaction Fee           |      22.0000|
+-- 0013i00000EmHuvAAF|GW Refund Fee                 |      23.0000|
+-- 0013i00000EmHuvAAF|PC Account Updater Monthly Fee|      24.0000|
+-- 0013i00000EmHuvAAF|GW Token Fee                  |      25.0000|
+-- 0013i00000EmHuvAAF|Group/Tag Fee                 |      26.0000|
+-- 0013i00000EmHuvAAF|GW Reissued Fee               |      27.0000|
+-- 0013i00000EmHuvAAF|GW Monthly Fee                |      28.0000|
+
+-- compare stg_cardconex_account;
 SELECT 
      acct_id
-    ,acct_name
-    ,accountnumber
-/*
-    ,cardconex_status
-    ,mid_1
-    ,mid_1_type
-    ,mid_2
-    ,mid_2_type
-    ,mid_3
-    ,mid_3_type
-    ,mid_4
-    ,mid_4_type
-    ,mid_5
-    ,mid_5_type
-*/
-    ,dba_name
-    ,dba_street
-    ,dba_city
-    ,dba_state
-    ,dba_postal_code
-    ,dba_phone
-    ,date_agreement_signed
---  ,lead_created_date
-    ,closure_date
---  ,invoicing_start_date
-    ,months_in_business
-    ,sic
-    ,owner_name
-    ,owner_firstname
-    ,owner_lastname
---  ,sales_representative
---  ,business_dev_credit
---  ,referring_organization_text
-    ,bluefin_contract_start_date
-    ,industry
-    ,segment
---  ,chain
---  ,relationship_chain
---  ,platform
---  ,p2pe_transaction_fee
-    ,p2pe_device_activated
-    ,ach_transaction_fee
-    ,p2pe_device_activating_fee
-    ,ach_per_gw_trans_fee
-    ,p2pe_device_stored_fee
-    ,ach_credit_fee
-    ,p2pe_encryption_fee
-    ,bfach_discount_rate
-    ,p2pe_tokenization_fee
-    ,ach_noc_fee
-    ,p2pe_monthly_flat_fee
-    ,ach_return_error_fee
-    ,one_time_key_injection_fees
-    ,ach_monthly_fee
-    ,per_transaction_fee
-    ,misc_monthly_fees
-    ,gw_per_auth_decline_fee
+    ,p2pe_device_activated        
+    ,ach_transaction_fee          
+    ,p2pe_device_activating_fee   
+    ,ach_per_gw_trans_fee         
+    ,p2pe_device_stored_fee       
+    ,ach_credit_fee               
+    ,p2pe_encryption_fee          
+    ,bfach_discount_rate          
+    ,p2pe_tokenization_fee        
+    ,ach_noc_fee                  
+    ,p2pe_monthly_flat_fee        
+    ,ach_return_error_fee         
+    ,one_time_key_injection_fees  
+    ,ach_monthly_fee              
+    ,per_transaction_fee          
+    ,misc_monthly_fees            
+    ,gw_per_auth_decline_fee      
     ,bluefin_gateway_discount_rate
-    ,gw_per_sale_fee
-    ,file_transfer_monthly_fee
-    ,gw_per_credit_fee
-    ,pci_scans_monthly_fee
-    ,gw_per_refund_fee
-    ,gw_per_token_fee
-    ,group_tag_fee
-    ,gw_reissued_fee
-    ,gateway_monthly_fee
-    ,parent_acct_id
-    ,hold_billing
-    ,stop_billing
-    ,billing_situation
-    ,billing_frequency
-    ,pci_compliance_fee
-    ,pci_non_compliance_fee
-    ,date_modified
---  ,date_created
-    ,date_updated
+    ,gw_per_sale_fee              
+    ,file_transfer_monthly_fee    
+    ,gw_per_credit_fee            
+    ,pci_scans_monthly_fee        
+    ,gw_per_refund_fee            
+    ,gw_per_token_fee             
+    ,group_tag_fee                
+    ,gw_reissued_fee              
+    ,gateway_monthly_fee                 
   FROM stg_cardconex_account
-  -- FROM test_cardconex_account
  WHERE acct_id = @legacy_id
-   OR acct_id = @acct_id
 ;
 
--- scratch
-
-SELECT fee_name__c, fee_amount__c FROM asset WHERE fee_amount__c = 16;
--- fee_name__c        |fee_amount__c|
--- -------------------|-------------|
--- Misc Monthly Fee(s)|      16.0000|
-
-SELECT * FROM fee_map ORDER BY 2;
--- fee_name                      |fee                          |
--- Misc Monthly Fee(s)           |misc_monthly_fees            |
-
-
-
-
-
-
-
-
-SELECT acct_id, fee_name__c, misc_monthly_fees FROM (
-SELECT 
-     asst.accountid AS acct_id
-    ,asst.fee_name__c
-    ,COALESCE(fee_amount__c, 0) * (fee='ach_credit_fee')                AS ach_credit_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='ach_monthly_fee')               AS ach_monthly_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='ach_noc_fee')                   AS ach_noc_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='ach_per_gw_trans_fee')          AS ach_per_gw_trans_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='ach_return_error_fee')          AS ach_return_error_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='ach_transaction_fee')           AS ach_transaction_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='bfach_discount_rate')           AS bfach_discount_rate
-    ,COALESCE(fee_amount__c, 0) * (fee='bluefin_gateway_discount_rate') AS bluefin_gateway_discount_rate
-    ,COALESCE(fee_amount__c, 0) * (fee='file_transfer_monthly_fee')     AS file_transfer_monthly_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='gateway_monthly_fee')           AS gateway_monthly_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='group_tag_fee')                 AS group_tag_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='gw_per_auth_decline_fee')       AS gw_per_auth_decline_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='gw_per_credit_fee')             AS gw_per_credit_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='gw_per_refund_fee')             AS gw_per_refund_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='gw_per_sale_fee')               AS gw_per_sale_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='gw_per_token_fee')              AS gw_per_token_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='gw_reissued_fee')               AS gw_reissued_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='misc_monthly_fees')             AS misc_monthly_fees
-    ,COALESCE(fee_amount__c, 0) * (fee='one_time_key_injection_fees')   AS one_time_key_injection_fees
-    ,COALESCE(fee_amount__c, 0) * (fee='p2pe_device_activated')         AS p2pe_device_activated
-    ,COALESCE(fee_amount__c, 0) * (fee='p2pe_device_activating_fee')    AS p2pe_device_activating_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='p2pe_device_stored_fee')        AS p2pe_device_stored_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='p2pe_encryption_fee')           AS p2pe_encryption_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='p2pe_monthly_flat_fee')         AS p2pe_monthly_flat_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='p2pe_tokenization_fee')         AS p2pe_tokenization_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='p2pe_transaction_fee')          AS p2pe_transaction_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='pci_compliance_fee')            AS pci_compliance_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='pci_non_compliance_fee')        AS pci_non_compliance_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='pci_scans_monthly_fee')         AS pci_scans_monthly_fee
-    ,COALESCE(fee_amount__c, 0) * (fee='per_transaction_fee')           AS per_transaction_fee
-  FROM asset          AS asst
-  LEFT JOIN fee_map   AS fm
-    ON asst.fee_name__c = fm.fee_name
- WHERE asst.accountid = @acct_id
- ORDER BY accountid
-) t1 WHERE misc_monthly_fees != 0
-;
-
--- acct_id           |fee_name__c        |misc_monthly_fees|
--- ------------------|-------------------|-----------------|
--- 0013i00000EmHuvAAF|Misc Monthly Fee(s)|          16.0000|
--- 0013i00000EmHuvAAF|Misc Monthly Fee(s)|          24.0000|
-
-SELECT accountid, fee_name__c, fee_amount__c FROM asset WHERE accountid = @acct_id AND fee_amount__c IN (16, 24);
-SELECT * FROM stg_cardconex_account WHERE acct_id = @legacy_id;
+-- name                         |value             |
+-- -----------------------------|------------------|
+-- acct_id                      |0014p00001l9qncqam|
+-- p2pe_device_activated        |1.0000            |
+-- ach_transaction_fee          |2.0000            |
+-- p2pe_device_activating_fee   |3.0000            |
+-- ach_per_gw_trans_fee         |4.0000            |
+-- p2pe_device_stored_fee       |5.0000            |
+-- ach_credit_fee               |6.0000            |
+-- p2pe_encryption_fee          |7.0000            |
+-- bfach_discount_rate          |8.0000            |
+-- p2pe_tokenization_fee        |9.0000            |
+-- ach_noc_fee                  |10.0000           |
+-- p2pe_monthly_flat_fee        |11.0000           |
+-- ach_return_error_fee         |12.0000           |
+-- one_time_key_injection_fees  |13.0000           |
+-- ach_monthly_fee              |14.0000           |
+-- per_transaction_fee          |15.0000           |
+-- misc_monthly_fees            |16.0000           |
+-- gw_per_auth_decline_fee      |17.0000           |
+-- bluefin_gateway_discount_rate|18.0000           |
+-- gw_per_sale_fee              |19.0000           |
+-- file_transfer_monthly_fee    |20.0000           |
+-- gw_per_credit_fee            |21.0000           |
+-- pci_scans_monthly_fee        |22.0000           |
+-- gw_per_refund_fee            |23.0000           |
+-- gw_per_token_fee             |25.0000           |
+-- group_tag_fee                |26.0000           |
+-- gw_reissued_fee              |27.0000           |
+-- gateway_monthly_fee          |28.0000           |
 
 
-SELECT * FROM tmp_updated WHERE legacy_id = @legacy_id;
-SELECT * FROM tmp_updated;
+
