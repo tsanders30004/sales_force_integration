@@ -537,11 +537,6 @@
     </hop>
     <hop>
       <from>calculations</from>
-      <to>convert_date_format</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>convert_date_format</from>
       <to>sort_account_data</to>
       <enabled>Y</enabled>
     </hop>
@@ -583,48 +578,6 @@
     </step>
 
   <step>
-    <name>convert_date_format</name>
-    <type>ScriptValueMod</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <compatible>N</compatible>
-    <optimizationLevel>9</optimizationLevel>
-    <jsScripts>      <jsScript>        <jsScript_type>0</jsScript_type>
-        <jsScript_name>Script 1</jsScript_name>
-        <jsScript_script>&#x2f;&#x2a; &#xd;&#xa;     converts date format.  Example&#x3a;  2020-01-14T20&#x3a;14&#x3a;54.000&#x2b;0000 becomes 20200114201454&#xd;&#xa;&#x2a;&#x2f;&#xd;&#xa;&#xd;&#xa;&#xd;&#xa;var dt_modified&#x3b;&#xd;&#xa;var dt_updated&#x3b;&#xd;&#xa;&#xd;&#xa;function reformat_date&#x28;d&#x29;&#x7b;&#xd;&#xa;   return d.substring&#x28;0, 4&#x29;&#xd;&#xa;            .concat&#x28;d.substr&#x28;5, 2&#x29;&#x29;&#xd;&#xa;            .concat&#x28;d.substr&#x28;8, 2&#x29;&#x29;&#xd;&#xa;            .concat&#x28;d.substr&#x28;11, 2&#x29;&#x29;&#xd;&#xa;            .concat&#x28;d.substr&#x28;14, 2&#x29;&#x29;&#xd;&#xa;            .concat&#x28;d.substr&#x28;17, 2&#x29;&#x29;&#x3b;&#xd;&#xa;&#x7d;&#xd;&#xa;&#xd;&#xa;&#xd;&#xa;dt_modified &#x3d; reformat_date&#x28;date_modified&#x29;&#x3b;&#xd;&#xa;dt_updated  &#x3d; reformat_date&#x28;date_updated&#x29;&#x3b;&#xd;&#xa;&#xd;&#xa;</jsScript_script>
-      </jsScript>    </jsScripts>    <fields>      <field>        <name>dt_modified</name>
-        <rename>date_modified</rename>
-        <type>String</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>Y</replace>
-      </field>      <field>        <name>dt_updated</name>
-        <rename>date_updated</rename>
-        <type>String</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>Y</replace>
-      </field>    </fields>    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>288</xloc>
-      <yloc>256</yloc>
-      <draw>Y</draw>
-    </GUI>
-    </step>
-
-  <step>
     <name>get_account_data</name>
     <type>TableInput</type>
     <description/>
@@ -636,7 +589,7 @@
       <schema_name/>
     </partitioning>
     <connection>LOCALHOST &#x2f; Sales Force</connection>
-    <sql>SELECT  &#xd;&#xa;    acct.Id                             AS acct_id&#xd;&#xa;   ,acct.Legacy_ID__c                   AS legacy_id&#xd;&#xa;   ,acct.Name                           AS acct_name&#xd;&#xa;   ,acct.AccountNumber                  AS accountnumber&#xd;&#xa;   ,acct.DBA_Name__c                    AS dba_name&#xd;&#xa;   ,acct.billingstreet                  AS dba_street&#xd;&#xa;   ,acct.billingcity                    AS dba_city&#xd;&#xa;   ,acct.billingstate                   AS dba_state&#xd;&#xa;   ,acct.billingpostalcode              AS dba_postal_code&#xd;&#xa;   ,acct.phone                          AS dba_phone&#xd;&#xa;   ,cont.contract_start_date__c         AS date_agreement_signed&#xd;&#xa;   ,acct.Sic                            AS sic&#xd;&#xa;   ,user.Name                           AS owner_name&#xd;&#xa;   ,user.FirstName                      AS owner_firstname&#xd;&#xa;   ,user.LastName                       AS owner_lastname&#xd;&#xa;   ,cont.contract_start_date__c         AS bluefin_contract_start_date&#xd;&#xa;   ,acct.Industry                       AS industry&#xd;&#xa;   ,acct.revenue_segment__c             AS segment&#xd;&#xa;   ,acct.ParentId                       AS parent_acct_id&#xd;&#xa;   ,CASE &#xd;&#xa;        WHEN cont.Hold_Billing__c &#x3d; 1 THEN &#x27;true&#x27;&#xd;&#xa;        WHEN cont.Hold_Billing__c &#x3d; 0 THEN &#x27;false&#x27;&#xd;&#xa;        ELSE NULL &#xd;&#xa;    END                                 AS hold_billing&#xd;&#xa;   ,cont.Billing_Hold_Release_Date__c   AS stop_billing&#xd;&#xa;   ,cont.Billing_Preference__c          AS billing_situation&#xd;&#xa;   ,cont.Billing_Frequency__c           AS billing_frequency&#xd;&#xa;   ,acct.LastModifiedDate               AS date_modified&#xd;&#xa;   ,acct.CreatedDate                    AS date_updated &#xd;&#xa;   ,acct.months_in_business__c          AS months_in_business&#xd;&#xa;  FROM account                          AS acct    &#xd;&#xa;  LEFT JOIN sales_contract__c           AS cont&#xd;&#xa;    ON acct.Id &#x3d; cont.AccountId__c &#xd;&#xa;  JOIN &#x60;user&#x60;                           AS &#x60;user&#x60;&#xd;&#xa;    ON acct.OwnerId &#x3d; user.Id  &#xd;&#xa; -- WHERE acct.Id &#x3d; &#x27;0013i00000EmHuvAAF&#x27; &#xd;&#xa;&#x3b;</sql>
+    <sql>SELECT  &#xd;&#xa;    acct.Id                             AS acct_id&#xd;&#xa;   ,acct.Legacy_ID__c                   AS legacy_id&#xd;&#xa;   ,acct.Name                           AS acct_name&#xd;&#xa;   ,acct.AccountNumber                  AS accountnumber&#xd;&#xa;   ,acct.DBA_Name__c                    AS dba_name&#xd;&#xa;   ,acct.billingstreet                  AS dba_street&#xd;&#xa;   ,acct.billingcity                    AS dba_city&#xd;&#xa;   ,acct.billingstate                   AS dba_state&#xd;&#xa;   ,acct.billingpostalcode              AS dba_postal_code&#xd;&#xa;   ,acct.phone                          AS dba_phone&#xd;&#xa;   ,cont.contract_start_date__c         AS date_agreement_signed&#xd;&#xa;   ,acct.Sic                            AS sic&#xd;&#xa;   ,user.Name                           AS owner_name&#xd;&#xa;   ,user.FirstName                      AS owner_firstname&#xd;&#xa;   ,user.LastName                       AS owner_lastname&#xd;&#xa;   ,cont.contract_start_date__c         AS bluefin_contract_start_date&#xd;&#xa;   ,acct.Industry                       AS industry&#xd;&#xa;   ,acct.revenue_segment__c             AS segment&#xd;&#xa;   ,acct.ParentId                       AS parent_acct_id&#xd;&#xa;   ,CASE &#xd;&#xa;        WHEN cont.Hold_Billing__c &#x3d; 1 THEN &#x27;true&#x27;&#xd;&#xa;        WHEN cont.Hold_Billing__c &#x3d; 0 THEN &#x27;false&#x27;&#xd;&#xa;        ELSE NULL     &#xd;&#xa;    END                                 AS hold_billing&#xd;&#xa;   ,cont.Billing_Hold_Release_Date__c   AS stop_billing&#xd;&#xa;   ,cont.Billing_Preference__c          AS billing_situation&#xd;&#xa;   ,cont.Billing_Frequency__c           AS billing_frequency&#xd;&#xa;   ,date_format&#x28;acct.LastModifiedDate, &#x27;&#x25;Y&#x25;m&#x25;d&#x25;H&#x25;i&#x25;s&#x27;&#x29; AS date_modified&#xd;&#xa;   ,date_format&#x28;acct.CreatedDate,      &#x27;&#x25;Y&#x25;m&#x25;d&#x25;H&#x25;i&#x25;s&#x27;&#x29; AS date_updated&#xd;&#xa;   ,acct.months_in_business__c          AS months_in_business&#xd;&#xa;  FROM account                          AS acct    &#xd;&#xa;  LEFT JOIN sales_contract__c           AS cont&#xd;&#xa;    ON acct.Id &#x3d; cont.AccountId__c &#xd;&#xa;  LEFT JOIN &#x60;user&#x60;                           AS &#x60;user&#x60;&#xd;&#xa;    ON acct.OwnerId &#x3d; user.Id  &#xd;&#xa;&#x3b;</sql>
     <limit>0</limit>
     <lookup/>
     <execute_each_row>N</execute_each_row>
@@ -936,7 +889,7 @@
       </output>
     </remotesteps>
     <GUI>
-      <xloc>576</xloc>
+      <xloc>480</xloc>
       <yloc>256</yloc>
       <draw>Y</draw>
     </GUI>
@@ -1208,7 +1161,7 @@
       </output>
     </remotesteps>
     <GUI>
-      <xloc>1024</xloc>
+      <xloc>944</xloc>
       <yloc>256</yloc>
       <draw>Y</draw>
     </GUI>
@@ -1226,119 +1179,62 @@
       <schema_name/>
     </partitioning>
     <fields>      <field>        <name>accountnumber</name>
-        <rename/>
       </field>      <field>        <name>acct_id</name>
-        <rename/>
       </field>      <field>        <name>acct_name</name>
-        <rename/>
       </field>      <field>        <name>ach_credit_fee</name>
-        <rename/>
       </field>      <field>        <name>ach_monthly_fee</name>
-        <rename/>
       </field>      <field>        <name>ach_noc_fee</name>
-        <rename/>
       </field>      <field>        <name>ach_per_gw_trans_fee</name>
-        <rename/>
       </field>      <field>        <name>ach_return_error_fee</name>
-        <rename/>
       </field>      <field>        <name>ach_transaction_fee</name>
-        <rename/>
       </field>      <field>        <name>bfach_discount_rate</name>
-        <rename/>
       </field>      <field>        <name>billing_frequency</name>
-        <rename/>
       </field>      <field>        <name>billing_situation</name>
-        <rename/>
       </field>      <field>        <name>bluefin_contract_start_date</name>
-        <rename/>
       </field>      <field>        <name>bluefin_gateway_discount_rate</name>
-        <rename/>
       </field>      <field>        <name>closure_date</name>
-        <rename/>
       </field>      <field>        <name>date_agreement_signed</name>
-        <rename/>
       </field>      <field>        <name>date_modified</name>
-        <rename/>
       </field>      <field>        <name>date_updated</name>
-        <rename/>
       </field>      <field>        <name>dba_name</name>
-        <rename/>
       </field>      <field>        <name>dba_street</name>
-        <rename/>
       </field>      <field>        <name>dba_city</name>
-        <rename/>
       </field>      <field>        <name>dba_state</name>
-        <rename/>
       </field>      <field>        <name>dba_postal_code</name>
-        <rename/>
       </field>      <field>        <name>dba_phone</name>
-        <rename/>
       </field>      <field>        <name>file_transfer_monthly_fee</name>
-        <rename/>
       </field>      <field>        <name>gateway_monthly_fee</name>
-        <rename/>
       </field>      <field>        <name>group_tag_fee</name>
-        <rename/>
       </field>      <field>        <name>gw_per_auth_decline_fee</name>
-        <rename/>
       </field>      <field>        <name>gw_per_credit_fee</name>
-        <rename/>
       </field>      <field>        <name>gw_per_refund_fee</name>
-        <rename/>
       </field>      <field>        <name>gw_per_sale_fee</name>
-        <rename/>
       </field>      <field>        <name>gw_per_token_fee</name>
-        <rename/>
       </field>      <field>        <name>gw_reissued_fee</name>
-        <rename/>
       </field>      <field>        <name>hold_billing</name>
-        <rename/>
       </field>      <field>        <name>industry</name>
-        <rename/>
       </field>      <field>        <name>legacy_id</name>
-        <rename/>
       </field>      <field>        <name>misc_monthly_fees</name>
-        <rename/>
       </field>      <field>        <name>months_in_business</name>
-        <rename/>
       </field>      <field>        <name>one_time_key_injection_fees</name>
-        <rename/>
       </field>      <field>        <name>owner_firstname</name>
-        <rename/>
       </field>      <field>        <name>owner_lastname</name>
-        <rename/>
       </field>      <field>        <name>owner_name</name>
-        <rename/>
       </field>      <field>        <name>p2pe_device_activated</name>
-        <rename/>
       </field>      <field>        <name>p2pe_device_activating_fee</name>
-        <rename/>
       </field>      <field>        <name>p2pe_device_stored_fee</name>
-        <rename/>
       </field>      <field>        <name>p2pe_encryption_fee</name>
-        <rename/>
       </field>      <field>        <name>p2pe_monthly_flat_fee</name>
-        <rename/>
       </field>      <field>        <name>p2pe_tokenization_fee</name>
-        <rename/>
       </field>      <field>        <name>p2pe_transaction_fee</name>
-        <rename/>
       </field>      <field>        <name>parent_acct_id</name>
-        <rename/>
       </field>      <field>        <name>pci_compliance_fee</name>
-        <rename/>
       </field>      <field>        <name>pci_non_compliance_fee</name>
-        <rename/>
       </field>      <field>        <name>pci_scans_monthly_fee</name>
-        <rename/>
       </field>      <field>        <name>per_transaction_fee</name>
-        <rename/>
       </field>      <field>        <name>segment</name>
-        <rename/>
       </field>      <field>        <name>sic</name>
-        <rename/>
       </field>      <field>        <name>stop_billing</name>
-        <rename/>
       </field>        <select_unspecified>N</select_unspecified>
     </fields>    <cluster_schema/>
     <remotesteps>
@@ -1348,7 +1244,7 @@
       </output>
     </remotesteps>
     <GUI>
-      <xloc>720</xloc>
+      <xloc>640</xloc>
       <yloc>256</yloc>
       <draw>Y</draw>
     </GUI>
@@ -1562,7 +1458,7 @@
       </output>
     </remotesteps>
     <GUI>
-      <xloc>848</xloc>
+      <xloc>768</xloc>
       <yloc>256</yloc>
       <draw>Y</draw>
     </GUI>
@@ -1604,7 +1500,7 @@
       </output>
     </remotesteps>
     <GUI>
-      <xloc>416</xloc>
+      <xloc>320</xloc>
       <yloc>256</yloc>
       <draw>Y</draw>
     </GUI>
@@ -1646,273 +1542,13 @@
       </output>
     </remotesteps>
     <GUI>
-      <xloc>576</xloc>
+      <xloc>480</xloc>
       <yloc>368</yloc>
       <draw>Y</draw>
     </GUI>
     </step>
 
-  <step>
-    <name>populate_test_cardconex_account 2</name>
-    <type>TableOutput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>LOCALHOST &#x2f; Sales Force</connection>
-    <schema>&#x24;&#x7b;dest_schema&#x7d;</schema>
-    <table>&#x24;&#x7b;dest_table&#x7d;</table>
-    <commit>1000</commit>
-    <truncate>Y</truncate>
-    <ignore_errors>N</ignore_errors>
-    <use_batch>Y</use_batch>
-    <specify_fields>Y</specify_fields>
-    <partitioning_enabled>N</partitioning_enabled>
-    <partitioning_field/>
-    <partitioning_daily>N</partitioning_daily>
-    <partitioning_monthly>Y</partitioning_monthly>
-    <tablename_in_field>N</tablename_in_field>
-    <tablename_field/>
-    <tablename_in_table>Y</tablename_in_table>
-    <return_keys>N</return_keys>
-    <return_field/>
-    <fields>
-        <field>
-          <column_name>acct_id</column_name>
-          <stream_name>acct_id</stream_name>
-        </field>
-        <field>
-          <column_name>legacy_id</column_name>
-          <stream_name>legacy_id</stream_name>
-        </field>
-        <field>
-          <column_name>acct_name</column_name>
-          <stream_name>acct_name</stream_name>
-        </field>
-        <field>
-          <column_name>accountnumber</column_name>
-          <stream_name>accountnumber</stream_name>
-        </field>
-        <field>
-          <column_name>dba_name</column_name>
-          <stream_name>dba_name</stream_name>
-        </field>
-        <field>
-          <column_name>date_agreement_signed</column_name>
-          <stream_name>date_agreement_signed</stream_name>
-        </field>
-        <field>
-          <column_name>sic</column_name>
-          <stream_name>sic</stream_name>
-        </field>
-        <field>
-          <column_name>owner_name</column_name>
-          <stream_name>owner_name</stream_name>
-        </field>
-        <field>
-          <column_name>owner_firstname</column_name>
-          <stream_name>owner_firstname</stream_name>
-        </field>
-        <field>
-          <column_name>owner_lastname</column_name>
-          <stream_name>owner_lastname</stream_name>
-        </field>
-        <field>
-          <column_name>bluefin_contract_start_date</column_name>
-          <stream_name>bluefin_contract_start_date</stream_name>
-        </field>
-        <field>
-          <column_name>industry</column_name>
-          <stream_name>industry</stream_name>
-        </field>
-        <field>
-          <column_name>segment</column_name>
-          <stream_name>segment</stream_name>
-        </field>
-        <field>
-          <column_name>parent_acct_id</column_name>
-          <stream_name>parent_acct_id</stream_name>
-        </field>
-        <field>
-          <column_name>hold_billing</column_name>
-          <stream_name>hold_billing</stream_name>
-        </field>
-        <field>
-          <column_name>stop_billing</column_name>
-          <stream_name>stop_billing</stream_name>
-        </field>
-        <field>
-          <column_name>billing_situation</column_name>
-          <stream_name>billing_situation</stream_name>
-        </field>
-        <field>
-          <column_name>billing_frequency</column_name>
-          <stream_name>billing_frequency</stream_name>
-        </field>
-        <field>
-          <column_name>date_modified</column_name>
-          <stream_name>date_modified</stream_name>
-        </field>
-        <field>
-          <column_name>date_updated</column_name>
-          <stream_name>date_updated</stream_name>
-        </field>
-        <field>
-          <column_name>closure_date</column_name>
-          <stream_name>closure_date</stream_name>
-        </field>
-        <field>
-          <column_name>ach_credit_fee</column_name>
-          <stream_name>ach_credit_fee</stream_name>
-        </field>
-        <field>
-          <column_name>ach_monthly_fee</column_name>
-          <stream_name>ach_monthly_fee</stream_name>
-        </field>
-        <field>
-          <column_name>ach_noc_fee</column_name>
-          <stream_name>ach_noc_fee</stream_name>
-        </field>
-        <field>
-          <column_name>ach_per_gw_trans_fee</column_name>
-          <stream_name>ach_per_gw_trans_fee</stream_name>
-        </field>
-        <field>
-          <column_name>ach_return_error_fee</column_name>
-          <stream_name>ach_return_error_fee</stream_name>
-        </field>
-        <field>
-          <column_name>ach_transaction_fee</column_name>
-          <stream_name>ach_transaction_fee</stream_name>
-        </field>
-        <field>
-          <column_name>bfach_discount_rate</column_name>
-          <stream_name>bfach_discount_rate</stream_name>
-        </field>
-        <field>
-          <column_name>bluefin_gateway_discount_rate</column_name>
-          <stream_name>bluefin_gateway_discount_rate</stream_name>
-        </field>
-        <field>
-          <column_name>file_transfer_monthly_fee</column_name>
-          <stream_name>file_transfer_monthly_fee</stream_name>
-        </field>
-        <field>
-          <column_name>gateway_monthly_fee</column_name>
-          <stream_name>gateway_monthly_fee</stream_name>
-        </field>
-        <field>
-          <column_name>group_tag_fee</column_name>
-          <stream_name>group_tag_fee</stream_name>
-        </field>
-        <field>
-          <column_name>gw_per_auth_decline_fee</column_name>
-          <stream_name>gw_per_auth_decline_fee</stream_name>
-        </field>
-        <field>
-          <column_name>gw_per_credit_fee</column_name>
-          <stream_name>gw_per_credit_fee</stream_name>
-        </field>
-        <field>
-          <column_name>gw_per_refund_fee</column_name>
-          <stream_name>gw_per_refund_fee</stream_name>
-        </field>
-        <field>
-          <column_name>gw_per_sale_fee</column_name>
-          <stream_name>gw_per_sale_fee</stream_name>
-        </field>
-        <field>
-          <column_name>gw_per_token_fee</column_name>
-          <stream_name>gw_per_token_fee</stream_name>
-        </field>
-        <field>
-          <column_name>gw_reissued_fee</column_name>
-          <stream_name>gw_reissued_fee</stream_name>
-        </field>
-        <field>
-          <column_name>misc_monthly_fees</column_name>
-          <stream_name>misc_monthly_fees</stream_name>
-        </field>
-        <field>
-          <column_name>months_in_business</column_name>
-          <stream_name>months_in_business__c</stream_name>
-        </field>
-        <field>
-          <column_name>one_time_key_injection_fees</column_name>
-          <stream_name>one_time_key_injection_fees</stream_name>
-        </field>
-        <field>
-          <column_name>p2pe_device_activated</column_name>
-          <stream_name>p2pe_device_activated</stream_name>
-        </field>
-        <field>
-          <column_name>p2pe_device_activating_fee</column_name>
-          <stream_name>p2pe_device_activating_fee</stream_name>
-        </field>
-        <field>
-          <column_name>p2pe_device_stored_fee</column_name>
-          <stream_name>p2pe_device_stored_fee</stream_name>
-        </field>
-        <field>
-          <column_name>p2pe_encryption_fee</column_name>
-          <stream_name>p2pe_encryption_fee</stream_name>
-        </field>
-        <field>
-          <column_name>p2pe_monthly_flat_fee</column_name>
-          <stream_name>p2pe_monthly_flat_fee</stream_name>
-        </field>
-        <field>
-          <column_name>p2pe_tokenization_fee</column_name>
-          <stream_name>p2pe_tokenization_fee</stream_name>
-        </field>
-        <field>
-          <column_name>pci_compliance_fee</column_name>
-          <stream_name>pci_compliance_fee</stream_name>
-        </field>
-        <field>
-          <column_name>pci_non_compliance_fee</column_name>
-          <stream_name>pci_non_compliance_fee</stream_name>
-        </field>
-        <field>
-          <column_name>pci_scans_monthly_fee</column_name>
-          <stream_name>pci_scans_monthly_fee</stream_name>
-        </field>
-        <field>
-          <column_name>per_transaction_fee</column_name>
-          <stream_name>per_transaction_fee</stream_name>
-        </field>
-    </fields>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>1024</xloc>
-      <yloc>336</yloc>
-      <draw>Y</draw>
-    </GUI>
-    </step>
-
   <step_error_handling>
-      <error>
-        <source_step>convert_date_format</source_step>
-        <target_step/>
-        <is_enabled>Y</is_enabled>
-        <nr_valuename/>
-        <descriptions_valuename/>
-        <fields_valuename/>
-        <codes_valuename/>
-        <max_errors/>
-        <max_pct_errors/>
-        <min_pct_rows/>
-      </error>
   </step_error_handling>
   <slave-step-copy-partition-distribution>
   </slave-step-copy-partition-distribution>
